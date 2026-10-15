@@ -181,4 +181,75 @@ for o in remit_opts:
 st.dataframe(table_rows, use_container_width=True)
 
 st.markdown("<br/>", unsafe_allow_html=True)
+
+# ── Row 4: Global Synthetic Transactions Benchmark (5,000 Records) ───────────
+st.markdown(f"### 🌐 {'全球留学生交易基准数据集 (5,000条真实仿真数据)' if lang == 'zh' else 'Global Student Financial Benchmark (5,000 Synthetic Records)'}")
+st.caption(
+    "基于 Faker 与数理金融分布生成的 5,000+ 笔多通道跨境交易基准数据集 · 覆盖微众直通车、支付宝、微信支付、bKash、Wise、银联等通道"
+    if lang == "zh"
+    else "Faker-generated 5,000+ transaction benchmark dataset covering WeBank Direct, Alipay, WeChat Pay, bKash, Wise, and UnionPay corridors."
+)
+
+csv_path = os.path.join("data", "student_finance_transactions_5000.csv")
+if os.path.exists(csv_path):
+    import pandas as pd
+    import plotly.express as px
+    
+    df_synth = pd.read_csv(csv_path)
+    total_volume_usd = df_synth["converted_amount_usd"].sum()
+    top_channel = df_synth["channel"].mode()[0]
+    
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("📦 " + ("总交易笔数" if lang == "zh" else "Total Transactions"), f"{len(df_synth):,}")
+    m2.metric("👥 " + ("活跃留学生数" if lang == "zh" else "Unique Students"), f"{df_synth['user_id'].nunique():,}")
+    m3.metric("💰 " + ("仿真交易总金额" if lang == "zh" else "Total Volume (USD)"), f"${total_volume_usd:,.0f}")
+    m4.metric("🏆 " + ("最高频清算通道" if lang == "zh" else "Top Channel"), top_channel)
+    
+    col_ch, col_tp = st.columns([6, 6])
+    with col_ch:
+        ch_counts = df_synth["channel"].value_counts().reset_index()
+        ch_counts.columns = ["Channel", "Count"]
+        fig_ch = px.bar(
+            ch_counts,
+            x="Count",
+            y="Channel",
+            orientation="h",
+            color="Count",
+            color_continuous_scale=["#3B82F6", "#0A2463"],
+            title="<b>" + ("各支付与清算通道交易量分布" if lang == "zh" else "Transaction Volume by Payment Channel") + "</b>"
+        )
+        fig_ch.update_layout(height=320, margin=dict(t=40, b=20, l=120, r=20), paper_bgcolor="rgba(0,0,0,0)")
+        st.plotly_chart(fig_ch, use_container_width=True)
+        
+    with col_tp:
+        tp_counts = df_synth["type"].value_counts().reset_index()
+        tp_counts.columns = ["Type", "Count"]
+        fig_tp = px.pie(
+            tp_counts,
+            values="Count",
+            names="Type",
+            hole=0.45,
+            color_discrete_sequence=["#0A2463", "#3B82F6", "#E8B84B", "#10B981", "#8B5CF6", "#F97316", "#EC4899"],
+            title="<b>" + ("跨境交易类型结构分布" if lang == "zh" else "Transaction Type Composition") + "</b>"
+        )
+        fig_tp.update_layout(height=320, margin=dict(t=40, b=20, l=20, r=20), paper_bgcolor="rgba(0,0,0,0)")
+        st.plotly_chart(fig_tp, use_container_width=True)
+        
+    st.markdown("##### 🔍 " + ("前100笔明细抽样浏览" if lang == "zh" else "Sample Transaction Explorer (Top 100)"))
+    st.dataframe(df_synth.head(100), use_container_width=True)
+    
+    with open(csv_path, "rb") as f:
+        csv_bytes = f.read()
+    st.download_button(
+        label="📥 " + ("下载完整 5,000 笔交易数据集 (CSV)" if lang == "zh" else "Download Full 5,000 Transactions Dataset (CSV)"),
+        data=csv_bytes,
+        file_name="student_finance_transactions_5000.csv",
+        mime="text/csv",
+        type="primary",
+        use_container_width=True,
+    )
+else:
+    st.info("Run `python scripts/generate_synthetic_transactions.py` to generate the 5,000 transaction dataset.")
+
+st.markdown("<br/>", unsafe_allow_html=True)
 render_compliance_footer(lang=lang)

@@ -8,3 +8,5 @@ pycountry>=24.6.1
 plotly>=5.24.0
 kaleido>=0.2.1
 reportlab>=4.2.0
+pandas>=2.0.0
+faker>=30.0.0

@@ -1,0 +1,9 @@
+.env
+data/crosspay.db
+logs/*.jsonl
+__pycache__/
+.pytest_cache/
+*.pyc
+.venv/
+htmlcov/
+.coverage

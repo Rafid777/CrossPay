@@ -1,0 +1,157 @@
+import pytest
+from src.tools.fx import get_exchange_rate, convert_amount
+from src.tools.remittance import compare_remittance_options, schedule_tuition_payment
+from src.tools.budget import get_spending_summary, set_budget_category, add_expense
+from src.tools.credit import get_credit_profile, simulate_credit_action
+from src.tools.compliance import check_aml_threshold, check_sanctioned_destination, mask_pii
+
+
+def test_get_exchange_rate_returns_valid_dict():
+    result = get_exchange_rate("BDT", "CNY")
+    assert "rate" in result and result["rate"] > 0
+    assert "provider" in result
+    assert "timestamp" in result
+    assert "fee_pct" in result
+
+
+def test_get_exchange_rate_usd_cny():
+    result = get_exchange_rate("USD", "CNY")
+    # USD/CNY should be around 7.28
+    assert 6.0 < result["rate"] < 9.0
+
+
+def test_convert_amount_math_is_correct():
+    result = convert_amount(1000.0, "BDT", "CNY")
+    assert result["original"] == 1000.0
+    assert result["converted"] > 0
+    # converted ≈ original * rate (within 2% for fees)
+    assert abs(result["converted"] - result["original"] * result["rate"]) < result["original"] * result["rate"] * 0.02
+
+
+def test_convert_amount_has_fee():
+    result = convert_amount(1000.0, "USD", "CNY")
+    assert "fee_usd" in result
+    assert result["fee_usd"] >= 0
+
+
+def test_compare_remittance_returns_at_least_three():
+    options = compare_remittance_options(500.0, "CN")
+    assert len(options) >= 3
+
+
+def test_compare_remittance_sorted_by_cost():
+    options = compare_remittance_options(500.0, "CN")
+    costs = [o["total_cost_usd"] for o in options]
+    assert costs == sorted(costs)
+
+
+def test_compare_remittance_has_recommended():
+    options = compare_remittance_options(500.0, "CN")
+    assert any(o["recommended"] for o in options)
+    # Only one should be recommended
+    assert sum(1 for o in options if o["recommended"]) == 1
+
+
+def test_schedule_tuition_requires_confirmation():
+    result = schedule_tuition_payment("STU001", 8000.0, "2026-11-01")
+    assert result["confirmation_required"] is True
+    assert "optimal_window" in result
+    assert "projected_rate" in result
+
+
+def test_aml_flags_above_10000():
+    result = check_aml_threshold(10001.0)
+    assert result["flagged"] is True
+    assert result["threshold_usd"] == 10000
+
+
+def test_aml_flags_exactly_10000_not_flagged():
+    result = check_aml_threshold(10000.0)
+    assert result["flagged"] is False
+
+
+def test_aml_passes_below_10000():
+    result = check_aml_threshold(9999.99)
+    assert result["flagged"] is False
+
+
+def test_sanctioned_destination_blocks_iran():
+    result = check_sanctioned_destination("IR")
+    assert result["blocked"] is True
+    assert result["reason"] is not None
+
+
+def test_sanctioned_destination_blocks_north_korea():
+    result = check_sanctioned_destination("KP")
+    assert result["blocked"] is True
+
+
+def test_sanctioned_destination_allows_china():
+    result = check_sanctioned_destination("CN")
+    assert result["blocked"] is False
+
+
+def test_sanctioned_destination_allows_us():
+    result = check_sanctioned_destination("US")
+    assert result["blocked"] is False
+
+
+def test_mask_pii_masks_long_digits():
+    masked = mask_pii("Account 12345678 transfer")
+    assert "12345678" not in masked
+    assert "****" in masked
+
+
+def test_mask_pii_preserves_short_numbers():
+    # numbers shorter than 8 digits should not be masked
+    masked = mask_pii("Transfer 500 CNY")
+    assert "500" in masked
+
+
+def test_mask_pii_masks_passport_pattern():
+    masked = mask_pii("Passport BD123456")
+    assert "123456" not in masked
+
+
+def test_set_budget_requires_confirmation():
+    result = set_budget_category("STU001", "food", 1000.0)
+    assert result["confirmation_required"] is True
+    assert result["category"] == "food"
+    assert result["new_limit_cny"] == 1000.0
+
+
+def test_add_expense_requires_confirmation():
+    result = add_expense("STU001", 50.0, "food", "lunch")
+    assert result["confirmation_required"] is True
+    assert result["recorded"] is False  # NOT committed until confirmed
+
+
+def test_credit_profile_has_required_fields():
+    result = get_credit_profile("STU001")
+    assert "score" in result
+    assert "tier" in result
+    assert "tips" in result
+    assert isinstance(result["tips"], list) and len(result["tips"]) >= 3
+    assert "next_milestone" in result
+
+
+def test_credit_profile_stu001_is_good_tier():
+    # STU001 has credit_score=680 → Good tier
+    result = get_credit_profile("STU001")
+    assert result["tier"] == "Good"
+    assert result["score"] == 680
+
+
+def test_simulate_credit_action():
+    result = simulate_credit_action("open_secured_card", "STU001")
+    assert "projected_score_change" in result
+    assert result["projected_score_change"] > 0
+    assert "new_score" in result
+    assert "timeline_months" in result
+
+
+def test_get_spending_summary_structure():
+    result = get_spending_summary("STU001", "2026-10")
+    assert "categories" in result
+    assert "total_cny" in result
+    assert "vs_budget_pct" in result

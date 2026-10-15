@@ -77,6 +77,21 @@ def main():
             {"country_code": "IR"},
             "Compliance: Sanctions check — Iran (BLOCKED)"
         ),
+        (
+            "get_fx_trend",
+            {"from_currency": "BDT", "days": 30},
+            "Analytics: 30-day BDT/CNY historical exchange rate trend"
+        ),
+        (
+            "get_spending_trend",
+            {"student_id": "STU001", "months": 6},
+            "Analytics: 6-month categorical living expense trend"
+        ),
+        (
+            "get_credit_trend",
+            {"student_id": "STU001"},
+            "Analytics: 6-month credit score progression trajectory"
+        ),
     ]
 
     results = []

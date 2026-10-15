@@ -1,132 +1,131 @@
 # CrossPay Technical Documentation
 
-**Project:** CrossPay — AI Financial Assistant for International Students  
+**Project:** CrossPay (微众智汇) — AI Financial Assistant for International Students  
 **Competition:** WeBank International AI Finance Challenge — Topic C  
-**Version:** 1.0.0  
+**Version:** 2.0.0 (Competition Build)  
 
 ---
 
 ## 1. System Overview
 
-CrossPay is a Streamlit-based AI financial assistant powered by Google Gemini 3.8 Flash. It helps international students studying in China manage cross-border finances through natural language conversation.
+CrossPay is an enterprise-grade AI financial assistant powered by **Google Gemini 3.8 Flash** and deployed on **Streamlit**. Designed specifically for international students studying in China, CrossPay bridges foreign currencies (BDT, PKR, NGN) to CNY with full Chinese regulatory compliance (PBOC/SAFE), bank-grade safeguards, multi-dimensional Plotly analytics, proactive financial alerts, and a proprietary **Financial Health Score™**.
 
-The system enforces a strict **no-LLM-arithmetic** principle: all monetary calculations, FX rates, fee comparisons, and compliance checks are routed through deterministic Python tool functions. The LLM acts as a natural language interface and orchestrator, never as a calculator.
+The system strictly enforces a **no-LLM-arithmetic** architecture: all monetary conversions, exchange rate lookups, budget aggregations, and compliance evaluations run via deterministic Python functions. The LLM serves exclusively as an empathetic, bilingual conversational interface and agentic orchestrator.
 
-## 2. Architecture
+---
 
-See `docs/architecture.md` for the full architecture diagram.
+## 2. Architecture & Modular Layers
 
-**Layers:**
-1. **Presentation** (`app.py`, `src/ui_components.py`) — Streamlit frontend with chat interface, sidebar stats, quick action buttons, and a confirmation banner for write actions
-2. **Agent** (`src/agent.py`) — Stateful `CrossPayAgent` class wrapping Gemini 3.8 Flash with multi-turn context via `previous_interaction_id`
-3. **Tool Registry** (`src/tool_registry.py`) — Gemini function-calling declarations and the `dispatch_tool()` router
-4. **Tools** (`src/tools/`) — Five deterministic modules: `fx`, `remittance`, `budget`, `credit`, `compliance`
-5. **Audit Logger** (`src/logger.py`) — Appends PII-masked JSON lines to `logs/execution_log.jsonl` after every tool call
-6. **Data** (`src/db.py`, `src/mock_data.py`) — SQLite with three seeded mock student accounts
-
-## 3. Agent Algorithm
+CrossPay is architected as a clean, decoupled 6-tier system:
 
 ```
-User Message
-     │
-     ▼
-CrossPayAgent.chat(message)
-     │
-     ├─ Build create_kwargs (model, input, system_instruction, tools, previous_interaction_id)
-     │
-     ▼
-gemini-3.8-flash interaction
-     │
-     ▼
-Iterate interaction.steps
-     │
-     ├─ step.type == "function_call"?
-     │       │
-     │       ├─ dispatch_tool(step.name, step.arguments)
-     │       │       └─ calls deterministic Python function
-     │       │       └─ logs to execution_log.jsonl (PII masked)
-     │       │
-     │       ├─ result.confirmation_required == True?
-     │       │       └─ YES: store as pending_action, return preview string
-     │       │              (STOP — do not continue loop)
-     │       │
-     │       └─ NO: continue iterating steps
-     │
-     └─ Return interaction.output_text
-
-Confirm button pressed:
-     CrossPayAgent.confirm_action()
-          └─ dispatch_tool(commit_variant, args)
-          └─ clear pending_action
-          └─ return success message
+┌────────────────────────────────────────────────────────────────────────┐
+│                   PRESENTATION & VISUALIZATION LAYER                   │
+│  app.py (Executive Portal) · pages/ (Multi-Page Navigation)            │
+│  • 1_📊_Dashboard.py    • 2_🤖_AI_Assistant.py                         │
+│  • 3_📈_Analytics.py    • 4_⚙️_Settings.py                             │
+│  • src/theme.py (CSS)   • src/charts.py (Plotly) • src/i18n.py (EN/ZH) │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+┌───────────────────────────────────▼────────────────────────────────────┐
+│                       AGENTIC ORCHESTRATION LAYER                      │
+│  src/agent.py (CrossPayAgent)                                          │
+│  • Gemini 3.8 Flash function-calling runtime                           │
+│  • Stateful conversation persistence (previous_interaction_id)         │
+│  • 2-Step Confirmation Gate (intercepts write/regulated actions)       │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+┌───────────────────────────────────▼────────────────────────────────────┐
+│                    TOOL REGISTRY & ROUTING LAYER                       │
+│  src/tool_registry.py                                                  │
+│  • 13 Gemini Function Declarations (JSON Schema)                       │
+│  • dispatch_tool(name, args) dynamic router                            │
+└───────────────────┬───────────────────────────────────┬────────────────┘
+                    │                                   │
+┌───────────────────▼───────────────┐   ┌───────────────▼────────────────┐
+│      DETERMINISTIC TOOLS          │   │         AUDIT LOGGER           │
+│  src/tools/                       │   │  src/logger.py                 │
+│  • fx.py: rates & conversion      │   │  • logs/execution_log.jsonl    │
+│  • remittance.py: cost comparison │   │  • mask_pii() redaction        │
+│  • budget.py: expense tracking    │   │  • 100% immutable audit trail  │
+│  • credit.py: scoring & simulation│   └────────────────────────────────┘
+│  • compliance.py: AML & sanctions │
+│  • analytics.py: FX/spend/credit  │
+└───────────────────┬───────────────┘
+                    │
+┌───────────────────▼────────────────────────────────────────────────────┐
+│                INTELLIGENCE & PROPRIETARY ENGINES                      │
+│  • src/health_score.py: CrossPay Financial Health Score™ (0-100)       │
+│  • src/alerts.py: Proactive smart risk and opportunity generator       │
+│  • src/pdf_report.py: High-resolution ReportLab PDF financial report   │
+└───────────────────┬────────────────────────────────────────────────────┘
+                    │
+┌───────────────────▼────────────────────────────────────────────────────┐
+│                   PERSISTENCE LAYER (SQLITE)                           │
+│  src/db.py & src/mock_data.py                                          │
+│  • accounts · expenses · budgets · fx_history · alerts · credit_history│
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 4. Tool Reference
+---
 
-| Tool | Module | Tier | Returns |
-|------|--------|------|--------|
-| `get_exchange_rate` | `fx.py` | 0 | `{rate, provider, timestamp, fee_pct}` |
-| `convert_amount` | `fx.py` | 0 | `{original, converted, rate, fee_usd}` |
-| `compare_remittance_options` | `remittance.py` | 0 | `list[{provider, fee_usd, total_cost_usd, recommended}]` |
-| `schedule_tuition_payment` | `remittance.py` | 2 | `{optimal_window, projected_rate, confirmation_required: True}` |
-| `get_spending_summary` | `budget.py` | 0 | `{categories, total_cny, vs_budget_pct}` |
-| `add_expense` | `budget.py` | 1 | `{recorded: False, new_balance_cny, confirmation_required: True}` |
-| `get_credit_profile` | `credit.py` | 0 | `{score, tier, tips, next_milestone}` |
-| `simulate_credit_action` | `credit.py` | 0 | `{projected_score_change, new_score, timeline_months}` |
-| `check_aml_threshold` | `compliance.py` | 2 | `{flagged, threshold_usd, reason}` |
-| `check_sanctioned_destination` | `compliance.py` | 2 | `{blocked, country, reason}` |
+## 3. Proprietary Metric: CrossPay Financial Health Score™
 
-## 5. Data Schema
+The **CrossPay Financial Health Score™** is a normalized 0–100 multi-factor composite risk index designed specifically for international students:
 
-### Table: `accounts`
-| Column | Type | Description |
-|--------|------|-------------|
-| id | TEXT PK | Student ID (STU001–STU003) |
-| name | TEXT | Display name |
-| home_currency | TEXT | ISO 4217 home currency |
-| balance_cny | REAL | Current CNY balance |
-| tuition_due_date | TEXT | ISO date |
-| credit_score | INTEGER | 300–850 |
-| passport_number | TEXT | Pre-masked (e.g. BD****1234) |
-| bank_account | TEXT | Pre-masked (e.g. ****4321) |
+$$\text{Health Score} = \text{Credit}\times 0.30 + \text{Discipline}\times 0.25 + \text{Reserve}\times 0.25 + \text{Tuition}\times 0.20$$
 
-### Table: `expenses`
-| Column | Type | Description |
-|--------|------|-------------|
-| id | INTEGER PK | Auto-increment |
-| student_id | TEXT FK | References accounts.id |
-| amount_cny | REAL | Expense amount |
-| category | TEXT | food/transport/books/utilities/entertainment/other |
-| timestamp | TEXT | ISO 8601 UTC |
+1. **Credit History (30%)**: Normalized from Chinese/host credit score [300, 850].
+2. **Spending Discipline (25%)**: Ratio of current month expenses to the living budget limit ($3,000 \text{ CNY}$ default baseline). Penalizes uncontrolled discretionary spending.
+3. **Emergency Reserve (25%)**: Liquidity runway measuring available CNY cash against the monthly burn rate.
+4. **Tuition Readiness (20%)**: Total global liquidity (Host CNY + Home currency balance converted to CNY) divided by the upcoming semester tuition obligation.
 
-## 6. Setup & Deployment
+### Health Score Bands
+- **91 – 100**: *Excellent (极佳)* — Unrestricted financial freedom and optimal runway.
+- **76 – 90**: *Healthy (健康)* — Robust balances and disciplined spending.
+- **61 – 75**: *Stable (稳定)* — Balanced but requires attention to upcoming tuition.
+- **41 – 60**: *At Risk (有风险)* — Liquidity deficit or overspending trend.
+- **0 – 40**: *Critical (危险)* — Imminent tuition payment default or negative balance.
 
-### Prerequisites
-- Python 3.14+
-- Gemini API key (get from [Google AI Studio](https://aistudio.google.com))
+---
 
-### Installation
-```bash
-cd "e:\Project China"
-pip install -r requirements.txt
-cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY
-```
+## 4. Complete Tool Specification (13 Tools)
 
-### Running
-```bash
-streamlit run app.py
-# Opens at http://localhost:8501
-```
+| Tool Name | Module | Tier | Description & Return Schema |
+|---|---|---|---|
+| `get_exchange_rate` | `fx.py` | 0 | Returns `{rate, from_currency, to_currency, provider, timestamp, fee_pct}` |
+| `convert_amount` | `fx.py` | 0 | Deterministic conversion: `{original, converted, rate, fee_usd, provider}` |
+| `compare_remittance_options` | `remittance.py` | 0 | Returns 4 providers sorted by total cost (WeBank Direct, Wise, UnionPay, SWIFT) |
+| `schedule_tuition_payment` | `remittance.py` | 2 | Analyzes FX cycles; returns `{optimal_window, projected_rate, confirmation_required: True}` |
+| `get_spending_summary` | `budget.py` | 0 | Summarizes monthly category spending and budget utilization percentage |
+| `add_expense` | `budget.py` | 1 | Previews an expense addition; returns `{new_balance_cny, confirmation_required: True}` |
+| `get_credit_profile` | `credit.py` | 0 | Returns score, tier, 5 actionable student credit tips, and next score milestone |
+| `simulate_credit_action` | `credit.py` | 0 | Simulates credit score changes (e.g., +25 points for secured credit card) |
+| `check_aml_threshold` | `compliance.py` | 2 | Checks transactions against $10,000 USD limit for PBOC/SAFE compliance |
+| `check_sanctioned_destination` | `compliance.py` | 2 | Evaluates country code against 10 international sanctioned destinations |
+| `get_fx_trend` | `analytics.py` | 0 | Retrieves 30-day daily historical FX rates against CNY for charting |
+| `get_spending_trend` | `analytics.py` | 0 | Aggregates 6-month historical spending grouped by category |
+| `get_credit_trend` | `analytics.py` | 0 | Returns 6-month historical credit score trajectory data |
 
-### Testing
-```bash
-python -m pytest tests/ -v --cov=src --cov-report=term-missing
-```
+---
 
-## 7. Key Design Decisions
+## 5. Security & Permission Tiering
 
-1. **Deterministic tools over LLM arithmetic** — Financial calculations are too critical to trust to probabilistic text generation. Every number the user sees came from a Python function, not the LLM.
-2. **Stateful context via `previous_interaction_id`** — Gemini's server-side context management avoids re-sending full conversation history on each turn, reducing latency and cost.
-3. **2-step confirmation at the Python layer** — The confirmation gate lives in Python, not in the LLM prompt, making it robust against prompt injection.
-4. **SQLite with pre-masked PII** — No financial PII ever stored in plaintext. Mock data seeded with masked values from the start.
+1. **Tier 0 (Read-Only)**: Read tools execute immediately without side effects.
+2. **Tier 1 (Write - Confirmed)**: Operations modifying the database return `confirmation_required: True`. The Python runtime freezes execution, saves the call as `pending_action`, and prompts the user with Confirm/Cancel UI buttons. No prompt-injected LLM text can bypass this gate.
+3. **Tier 2 (Regulated)**: Large transfers require both 2-step user confirmation and mandatory automated AML / sanctions checks.
+4. **PII Masking**: RegEx patterns in `src/logger.py` mask 8+ digit bank accounts and passport numbers with `****` before persisting to `logs/execution_log.jsonl`.
+
+---
+
+## 6. Testing & Quality Assurance
+
+- Total automated tests: **57**
+- Test command: `python -m pytest tests/ -v`
+- Pass rate: **100% (57/57)**
+- Test modules:
+  - `test_agent.py`: Multi-turn stateful memory, tool calling, 2-step confirmation handling
+  - `test_tools.py`: Deterministic mathematics, FX conversions, remittance ordering, AML flags
+  - `test_logger.py`: Audit logging, JSONL schema, PII redaction
+  - `test_db.py`: SQLite creation, constraint verification, mock seeding
+  - `test_analytics.py`: Financial Health Score calculation, alerts engine, analytics querying, ReportLab PDF generation

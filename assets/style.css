@@ -1,0 +1,169 @@
+/* WeBank CrossPay Fintech CSS Theme */
+:root {
+  --primary: #0A2463;
+  --primary-light: #1E3A8A;
+  --accent: #E8B84B;
+  --accent-light: #FEF3C7;
+  --bg-gradient: linear-gradient(135deg, #0A2463 0%, #1E3A8A 50%, #3B82F6 100%);
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --card-border: 1px solid rgba(226, 232, 240, 0.8);
+  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+  --text-main: #0F172A;
+  --text-muted: #64748B;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+}
+
+/* Metric / KPI Cards */
+.kpi-card {
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px -4px rgba(10, 36, 99, 0.12);
+}
+
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--bg-gradient);
+}
+
+.kpi-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.kpi-value {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.2;
+}
+
+.kpi-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* Health Score Pill & Badge */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+}
+
+.badge-excellent {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.badge-healthy {
+  background-color: #DCFCE7;
+  color: #166534;
+}
+
+.badge-stable {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.badge-risk {
+  background-color: #FFEDD5;
+  color: #9A3412;
+}
+
+.badge-critical {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+/* Alert Banner Cards */
+.alert-box {
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  border-left: 5px solid;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+}
+
+.alert-critical {
+  background-color: #FEF2F2;
+  border-color: #EF4444;
+  color: #991B1B;
+}
+
+.alert-warning {
+  background-color: #FFFBEB;
+  border-color: #F59E0B;
+  color: #92400E;
+}
+
+.alert-info {
+  background-color: #EFF6FF;
+  border-color: #3B82F6;
+  color: #1E40AF;
+}
+
+.alert-success {
+  background-color: #ECFDF5;
+  border-color: #10B981;
+  color: #065F46;
+}
+
+/* Hero Section */
+.hero-banner {
+  background: var(--bg-gradient);
+  color: white;
+  padding: 24px 32px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 30px rgba(10, 36, 99, 0.25);
+}
+
+.hero-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0;
+  color: white;
+}
+
+.hero-subtitle {
+  font-size: 0.95rem;
+  color: #BFDBFE;
+  margin-top: 4px;
+}
+
+/* Compliance Notice Footer */
+.compliance-footer {
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-top: 32px;
+  font-size: 0.78rem;
+  color: #64748B;
+  line-height: 1.5;
+}

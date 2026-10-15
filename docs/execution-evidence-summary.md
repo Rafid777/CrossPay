@@ -12,17 +12,20 @@
 |---|-----------|----------|------|--------|--------------------|
 | 1 | `get_exchange_rate` | FX | 0 (Read) | ✅ Executed | Rate timestamped, provider labeled |
 | 2 | `convert_amount` | FX | 0 (Read) | ✅ Executed | Deterministic calculation |
-| 3 | `compare_remittance_options` | Remittance | 0 (Read) | ✅ Executed | 4 providers, sorted by cost |
-| 4 | `schedule_tuition_payment` | Remittance | 2 (Regulated) | ✅ Executed | `confirmation_required=True` |
+| 3 | `compare_remittance_options` | Remittance | 0 (Read) | ✅ Executed | 4 providers, sorted by cost (WeBank Direct highlighted) |
+| 4 | `schedule_tuition_payment` | Remittance | 2 (Regulated) | ⚠️ CONFIRM REQUIRED | `confirmation_required=True` |
 | 5 | `get_spending_summary` | Budget | 0 (Read) | ✅ Executed | DB query, no LLM arithmetic |
-| 6 | `get_credit_profile` | Credit | 0 (Read) | ✅ Executed | Score 680, Good tier, 5 tips |
-| 7 | `check_aml_threshold` | Compliance | 2 (Regulated) | 🚩 FLAGGED | $12,500 > $10,000 threshold |
-| 8 | `check_sanctioned_destination` | Compliance | 2 (Regulated) | 🚫 BLOCKED | Iran (IR) — sanctioned |
+| 6 | `get_credit_profile` | Credit | 0 (Read) | ✅ Executed | Score 680, Good tier, 5 actionable tips |
+| 7 | `check_aml_threshold` | Compliance | 2 (Regulated) | 🚩 FLAGGED | $12,500 > $10,000 USD PBOC/SAFE threshold |
+| 8 | `check_sanctioned_destination` | Compliance | 2 (Regulated) | 🚫 BLOCKED | Iran (IR) — blocked under international sanctions |
+| 9 | `get_fx_trend` | Analytics | 0 (Read) | ✅ Executed | 30-day historical FX trajectory against CNY |
+| 10 | `get_spending_trend` | Analytics | 0 (Read) | ✅ Executed | 6-month categorical living expense trend |
+| 11 | `get_credit_trend` | Analytics | 0 (Read) | ✅ Executed | 6-month credit score progression trajectory |
 
-**All 8 tool calls logged to `logs/execution_log.jsonl` with:**
+**All tool calls logged to `logs/execution_log.jsonl` with:**
 - Timestamp (ISO 8601 UTC)
 - Tool name
-- PII-masked inputs
+- PII-masked inputs (`mask_pii`)
 - Truncated output summary (≤200 chars)
 
 ---

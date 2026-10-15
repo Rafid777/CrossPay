@@ -1,0 +1,184 @@
+"""Page 3: Deep Financial Analytics & Trends (数据洞察与趋势分析)."""
+import os
+import streamlit as st
+from dotenv import load_dotenv
+
+from src.db import get_db
+from src.mock_data import seed_mock_data
+from src.tools.analytics import get_fx_trend, get_spending_trend, get_credit_trend
+from src.tools.remittance import compare_remittance_options
+from src.charts import (
+    create_spending_donut,
+    create_monthly_trend,
+    create_credit_journey,
+    create_fx_trend,
+    create_remittance_comparison,
+)
+from src.theme import load_css, render_hero, render_compliance_footer
+from src.i18n import t, get_current_lang
+
+load_dotenv()
+
+st.set_page_config(
+    page_title="CrossPay — Analytics",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+load_css()
+
+# Session State
+if "db_seeded" not in st.session_state:
+    conn = get_db()
+    seed_mock_data(conn)
+    conn.close()
+    st.session_state.db_seeded = True
+
+if "student_id" not in st.session_state:
+    st.session_state.student_id = os.getenv("STUDENT_ID", "STU001")
+
+if "lang" not in st.session_state:
+    st.session_state.lang = "en"
+
+# Sidebar controls
+with st.sidebar:
+    st.markdown("### 🏦 **CrossPay**")
+    st.caption("WeBank AI Finance Challenge · Topic C")
+    st.divider()
+
+    # Language Switcher
+    lang_choice = st.radio(
+        "🌐 Language / 语言",
+        options=["English", "简体中文"],
+        index=0 if st.session_state.lang == "en" else 1,
+        horizontal=True,
+    )
+    st.session_state.lang = "zh" if lang_choice == "简体中文" else "en"
+    lang = st.session_state.lang
+
+    st.divider()
+
+    student_labels = {
+        "STU001": "Rafi Ahmed (🇧🇩 BD → 🇨🇳 CN)",
+        "STU002": "Ayesha Khan (🇵🇰 PK → 🇨🇳 CN)",
+        "STU003": "Emeka Okafor (🇳🇬 NG → 🇨🇳 CN)",
+    }
+    selected_stu = st.selectbox(
+        t("select_student", lang),
+        options=list(student_labels.keys()),
+        format_func=lambda x: student_labels[x],
+        index=list(student_labels.keys()).index(st.session_state.student_id),
+    )
+    if selected_stu != st.session_state.student_id:
+        st.session_state.student_id = selected_stu
+        st.session_state.agent = None
+        st.rerun()
+
+student_id = st.session_state.student_id
+lang = st.session_state.lang
+
+# Fetch Account
+conn = get_db()
+acc = dict(conn.execute("SELECT * FROM accounts WHERE id = ?", (student_id,)).fetchone())
+conn.close()
+home_curr = acc.get("home_currency", "BDT")
+
+# Hero Banner
+hero_title = "CrossPay Financial Intelligence & Analytics" if lang == "en" else "CrossPay 财务大数据与趋势洞察"
+hero_sub = (
+    "高精度消费全景剖析 · 汇率智能套保监控 · 跨国征信成长图谱"
+    if lang == "zh"
+    else "Multi-Dimensional Spending Analysis · 30-Day FX Tracking · Credit Growth Trajectory"
+)
+render_hero(hero_title, hero_sub)
+
+# ── Row 1: Spending Analytics (Line + Donut) ─────────────────────────────────
+st.markdown(f"### 📊 {'支出分析与消费模式' if lang == 'zh' else 'Expenditure Patterns & Budget Discipline'}")
+
+col_line, col_donut = st.columns([7, 5])
+
+with col_line:
+    spending_trend = get_spending_trend(student_id, months=6)
+    if spending_trend:
+        fig_trend = create_monthly_trend(spending_trend, budget_limit=3000.0, lang=lang)
+        st.plotly_chart(fig_trend, use_container_width=True)
+    else:
+        st.info("No spending trend data available.")
+
+with col_donut:
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT category, SUM(amount_cny) as total FROM expenses "
+        "WHERE student_id = ? AND timestamp LIKE '2026-10%' GROUP BY category",
+        (student_id,)
+    ).fetchall()
+    conn.close()
+    cat_dict = {r["category"]: r["total"] for r in rows}
+    if cat_dict:
+        fig_donut = create_spending_donut(cat_dict, lang=lang)
+        st.plotly_chart(fig_donut, use_container_width=True)
+    else:
+        st.info("No categorical data for current month.")
+
+st.markdown("<br/>", unsafe_allow_html=True)
+
+# ── Row 2: Credit Journey & FX Monitoring ────────────────────────────────────
+st.markdown(f"### 💳 {'征信成长曲线与汇率监控' if lang == 'zh' else 'Credit Journey & FX Rate Tracking'}")
+
+col_credit, col_fx = st.columns([6, 6])
+
+with col_credit:
+    credit_hist = get_credit_trend(student_id)
+    if credit_hist:
+        fig_credit = create_credit_journey(credit_hist, lang=lang)
+        st.plotly_chart(fig_credit, use_container_width=True)
+    else:
+        st.info("No credit history records found.")
+
+with col_fx:
+    # Allow user to pick currency pair
+    pair_choice = st.selectbox(
+        "选择外汇币种对 / Currency Pair" if lang == "zh" else "Select Currency Pair",
+        options=["BDT", "PKR", "NGN"],
+        index=["BDT", "PKR", "NGN"].index(home_curr) if home_curr in ["BDT", "PKR", "NGN"] else 0,
+    )
+    fx_data = get_fx_trend(pair_choice, "CNY", days=30)
+    if fx_data:
+        fig_fx = create_fx_trend(fx_data, currency=pair_choice, lang=lang)
+        st.plotly_chart(fig_fx, use_container_width=True)
+    else:
+        st.info(f"No FX data found for {pair_choice}/CNY.")
+
+st.markdown("<br/>", unsafe_allow_html=True)
+
+# ── Row 3: Remittance Optimizer Comparison ───────────────────────────────────
+st.markdown(f"### 🏦 {'跨境汇款服务商综合成本测算' if lang == 'zh' else 'Cross-Border Remittance Cost Optimizer'}")
+st.caption(
+    "根据固定汇费与汇率点差综合测算 · 推荐微众银行直连汇款 (WeBank Direct) 享极优手续费与快速清算"
+    if lang == "zh"
+    else "Benchmarking flat fees and FX markups for a $500 USD student transfer to China."
+)
+
+remit_opts = compare_remittance_options(amount_usd=500.0, destination_country="CN")
+fig_remit = create_remittance_comparison(remit_opts, lang=lang)
+st.plotly_chart(fig_remit, use_container_width=True)
+
+# Table breakdown
+st.markdown(f"##### 📋 {'详细费用对比明细' if lang == 'zh' else 'Detailed Provider Breakdown'}")
+table_rows = []
+for o in remit_opts:
+    rec_badge = "⭐ Recommended / 推荐" if o["recommended"] else ""
+    table_rows.append({
+        "Provider / 服务商": o["provider"],
+        "Base Fee / 基础汇费": f"${o['fee_usd']:.2f} USD",
+        "FX Markup / 汇率点差": f"{o['fx_markup_pct']:.2f}%",
+        "FX Cost / 点差折算": f"${o['fx_cost_usd']:.2f} USD",
+        "Total Cost / 综合总成本": f"${o['total_cost_usd']:.2f} USD",
+        "Speed / 到账时效": f"{o['delivery_days']} Business Day(s) / 工作日",
+        "Status / 评级": rec_badge,
+    })
+st.dataframe(table_rows, use_container_width=True)
+
+st.markdown("<br/>", unsafe_allow_html=True)
+render_compliance_footer(lang=lang)

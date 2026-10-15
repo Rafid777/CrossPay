@@ -42,6 +42,40 @@ CREATE TABLE IF NOT EXISTS budgets (
 )
 """
 
+CREATE_FX_HISTORY = """
+CREATE TABLE IF NOT EXISTS fx_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    from_currency TEXT NOT NULL,
+    to_currency TEXT NOT NULL,
+    rate REAL NOT NULL
+)
+"""
+
+CREATE_ALERTS = """
+CREATE TABLE IF NOT EXISTS alerts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id TEXT NOT NULL,
+    alert_type TEXT NOT NULL,
+    message TEXT NOT NULL,
+    message_zh TEXT NOT NULL,
+    severity TEXT NOT NULL,
+    is_read INTEGER DEFAULT 0,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(student_id) REFERENCES accounts(id)
+)
+"""
+
+CREATE_CREDIT_HISTORY = """
+CREATE TABLE IF NOT EXISTS credit_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id TEXT NOT NULL,
+    date TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    FOREIGN KEY(student_id) REFERENCES accounts(id)
+)
+"""
+
 
 def get_db(path: str = "data/crosspay.db") -> sqlite3.Connection:
     if path != ":memory:":
@@ -51,5 +85,8 @@ def get_db(path: str = "data/crosspay.db") -> sqlite3.Connection:
     conn.execute(CREATE_ACCOUNTS)
     conn.execute(CREATE_EXPENSES)
     conn.execute(CREATE_BUDGETS)
+    conn.execute(CREATE_FX_HISTORY)
+    conn.execute(CREATE_ALERTS)
+    conn.execute(CREATE_CREDIT_HISTORY)
     conn.commit()
     return conn

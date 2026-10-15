@@ -6,7 +6,9 @@ from src.tools.budget import (
 )
 from src.tools.credit import get_credit_profile, simulate_credit_action
 from src.tools.compliance import check_aml_threshold, check_sanctioned_destination
+from src.tools.analytics import get_fx_trend, get_spending_trend, get_credit_trend
 from src.logger import log_tool_call
+
 
 # ---------------------------------------------------------------------------
 # Gemini function-calling declarations
@@ -133,6 +135,41 @@ TOOL_DECLARATIONS = [
             "required": ["country_code"],
         },
     },
+    {
+        "name": "get_fx_trend",
+        "description": "Get historical foreign exchange rates for a currency pair against CNY over the past N days.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "from_currency": {"type": "string", "description": "Source currency code (e.g. BDT, PKR, NGN)"},
+                "days": {"type": "integer", "description": "Number of historical days (default 30)"},
+            },
+            "required": ["from_currency"],
+        },
+    },
+    {
+        "name": "get_spending_trend",
+        "description": "Get multi-month spending trend grouped by category for a student.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "student_id": {"type": "string", "description": "Student account ID"},
+                "months": {"type": "integer", "description": "Number of months (default 6)"},
+            },
+            "required": ["student_id"],
+        },
+    },
+    {
+        "name": "get_credit_trend",
+        "description": "Get historical credit score trajectory over recent months.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "student_id": {"type": "string", "description": "Student account ID"},
+            },
+            "required": ["student_id"],
+        },
+    },
 ]
 
 # ---------------------------------------------------------------------------
@@ -149,6 +186,9 @@ _TOOL_MAP = {
     "simulate_credit_action": simulate_credit_action,
     "check_aml_threshold": check_aml_threshold,
     "check_sanctioned_destination": check_sanctioned_destination,
+    "get_fx_trend": get_fx_trend,
+    "get_spending_trend": get_spending_trend,
+    "get_credit_trend": get_credit_trend,
     # Commit variants (used after user confirms)
     "commit_set_budget_category": commit_set_budget_category,
     "commit_add_expense": commit_add_expense,

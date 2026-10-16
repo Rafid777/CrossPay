@@ -4,7 +4,7 @@ from src.db import get_db
 from src.mock_data import seed_mock_data
 from src.health_score import calculate_health_score
 from src.alerts import get_active_alerts
-from src.tools.analytics import get_fx_trend, get_spending_trend, get_credit_trend
+from src.tools.analytics import get_fx_trend, get_spending_trend, get_credit_trend, get_worldbank_remittance
 from src.pdf_report import generate_pdf_report
 
 
@@ -87,3 +87,31 @@ def test_generate_pdf_report():
     assert isinstance(pdf_bytes, bytes)
     assert len(pdf_bytes) > 1000
     assert pdf_bytes.startswith(b"%PDF")
+
+
+# ── World Bank remittance tool tests ─────────────────────────────────────────
+
+def test_worldbank_bangladesh_outflow_2023():
+    result = get_worldbank_remittance("Bangladesh", "outflow", 2023)
+    assert "amount_usd_million" in result
+    assert result["amount_usd_million"] > 100  # Bangladesh outflows > $100M
+    assert result["flow_type"] == "outflow"
+    assert result["source"].startswith("World Bank")
+
+
+def test_worldbank_bangladesh_inflow_2024():
+    result = get_worldbank_remittance("Bangladesh", "inflow", 2024)
+    assert "amount_usd_million" in result
+    assert result["amount_usd_million"] > 10000  # Bangladesh inflows > $10B
+
+
+def test_worldbank_5yr_cagr_present():
+    result = get_worldbank_remittance("Bangladesh", "outflow", 2023)
+    assert "5yr_cagr_pct" in result
+    assert result["5yr_cagr_pct"] is not None
+    assert result["5yr_cagr_pct"] > 0  # Bangladesh outflows growing
+
+
+def test_worldbank_unknown_country_returns_error():
+    result = get_worldbank_remittance("Neverland", "outflow", 2023)
+    assert "error" in result

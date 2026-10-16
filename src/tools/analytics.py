@@ -50,3 +50,52 @@ def get_credit_trend(student_id: str) -> list[dict]:
     ).fetchall()
     conn.close()
     return [{"date": r["date"], "score": r["score"]} for r in rows]
+
+
+def get_worldbank_remittance(country: str, flow: str = "outflow", year: int = 2023) -> dict:
+    """Get World Bank official remittance data for a country and year.
+
+    Args:
+        country: Country name (e.g. "Bangladesh", "Pakistan", "Nigeria")
+        flow: "outflow" (money sent abroad) or "inflow" (money received)
+        year: Year between 2000 and 2024
+    """
+    import os
+    import pandas as pd
+
+    data_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data"
+    )
+    fname = "worldbank_outflows_clean.csv" if flow == "outflow" else "worldbank_inflows_clean.csv"
+    path = os.path.join(data_dir, fname)
+    if not os.path.exists(path):
+        return {"error": "World Bank data file not found", "country": country}
+
+    df = pd.read_csv(path)
+    row = df[df["country"].str.lower() == country.lower()]
+    if row.empty:
+        row = df[df["country"].str.lower().str.contains(country.lower(), na=False)]
+    if row.empty:
+        return {"error": f"Country '{country}' not found in World Bank dataset"}
+
+    row = row.iloc[0]
+    year_str = str(year)
+    amount = row.get(year_str, row.get(year, None))
+    if amount is None:
+        return {"error": f"Year {year} not available", "country": country}
+
+    amount = float(amount) if not pd.isna(amount) else 0.0
+    prev_year = year - 5
+    prev_amount = row.get(str(prev_year), row.get(prev_year, None))
+    cagr = None
+    if prev_amount is not None and not pd.isna(prev_amount) and float(prev_amount) > 0 and amount > 0:
+        cagr = round(((amount / float(prev_amount)) ** (1 / 5) - 1) * 100, 2)
+
+    return {
+        "country": str(row["country"]),
+        "year": year,
+        "flow_type": flow,
+        "amount_usd_million": round(amount, 2),
+        "5yr_cagr_pct": cagr,
+        "source": "World Bank Group — Migration & Remittances Data (official)",
+    }

@@ -6,7 +6,7 @@ from src.tools.budget import (
 )
 from src.tools.credit import get_credit_profile, simulate_credit_action
 from src.tools.compliance import check_aml_threshold, check_sanctioned_destination
-from src.tools.analytics import get_fx_trend, get_spending_trend, get_credit_trend
+from src.tools.analytics import get_fx_trend, get_spending_trend, get_credit_trend, get_worldbank_remittance
 from src.logger import log_tool_call
 
 
@@ -170,6 +170,19 @@ TOOL_DECLARATIONS = [
             "required": ["student_id"],
         },
     },
+    {
+        "name": "get_worldbank_remittance",
+        "description": "Look up official World Bank remittance data (2000–2024) for any country. Use when the user asks about global remittance flows, market size, or how much a country sends/receives. Returns amount in USD million and 5-year CAGR.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "country": {"type": "string", "description": "Country name (e.g. 'Bangladesh', 'Pakistan', 'Nigeria', 'China')"},
+                "flow": {"type": "string", "description": "'outflow' for money sent abroad, 'inflow' for money received", "enum": ["outflow", "inflow"]},
+                "year": {"type": "integer", "description": "Year between 2000 and 2024 (default 2023)"},
+            },
+            "required": ["country"],
+        },
+    },
 ]
 
 # ---------------------------------------------------------------------------
@@ -189,6 +202,7 @@ _TOOL_MAP = {
     "get_fx_trend": get_fx_trend,
     "get_spending_trend": get_spending_trend,
     "get_credit_trend": get_credit_trend,
+    "get_worldbank_remittance": get_worldbank_remittance,
     # Commit variants (used after user confirms)
     "commit_set_budget_category": commit_set_budget_category,
     "commit_add_expense": commit_add_expense,

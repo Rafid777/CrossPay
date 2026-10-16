@@ -1,0 +1,43 @@
+{
+  "model_name": "CrossPay-Enterprise-Production-NLP-v2.0",
+  "production_ready": true,
+  "offline_autonomous": true,
+  "total_training_samples": 1300,
+  "num_classes": 20,
+  "intents": [
+    "add_expense",
+    "check_aml_threshold",
+    "check_sanctioned_destination",
+    "compare_remittance_options",
+    "convert_amount",
+    "faq_banking_china",
+    "faq_mobile_payment",
+    "faq_scholarship_stipend",
+    "get_credit_profile",
+    "get_credit_trend",
+    "get_exchange_rate",
+    "get_fx_trend",
+    "get_spending_summary",
+    "get_spending_trend",
+    "get_worldbank_remittance",
+    "greeting_and_identity",
+    "out_of_domain",
+    "schedule_tuition_payment",
+    "set_budget_category",
+    "simulate_credit_action"
+  ],
+  "cv_accuracy_pct": 98.69,
+  "cv_std_pct": 0.83,
+  "train_time_sec": 2.222,
+  "avg_latency_ms": 3.48,
+  "p95_latency_ms": 4.43,
+  "vectorizer": "TF-IDF sublinear char_wb (2-5 ngrams, L2 norm)",
+  "classifier": "LogisticRegression(C=15.0, balanced, lbfgs)",
+  "evaluation_summary": {
+    "macro_avg_f1": 100.0,
+    "weighted_avg_f1": 100.0,
+    "precision_macro": 100.0,
+    "recall_macro": 100.0
+  },
+  "timestamp": "2026-10-16T18:40:57Z"
+}

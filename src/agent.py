@@ -2,6 +2,9 @@
 from google import genai
 from src.tool_registry import TOOL_DECLARATIONS, dispatch_tool
 
+from src.tools.compliance import mask_pii
+from src.autonomous_engine import AutonomousFinEngine
+
 _SYSTEM_PROMPT = """You are CrossPay (微众智汇), an intelligent AI financial assistant designed for international students studying in China, powered by WeBank financial infrastructure.
 You help students master cross-border finances: foreign exchange rate queries, tuition payment timing optimization, remittance provider comparison, living expense budgeting, and credit score building.
 
@@ -19,43 +22,68 @@ CORE PRINCIPLES & RULES YOU MUST STRICTLY FOLLOW:
 
 
 class CrossPayAgent:
-    """Stateful Gemini-powered financial assistant for international students."""
+    """Hybrid Autonomous & Gemini-powered financial assistant for international students."""
 
-    def __init__(self, student_id: str, api_key: str):
+    def __init__(self, student_id: str, api_key: str = "", engine_mode: str = "auto"):
         self.student_id = student_id
-        self.api_key = api_key
+        self.api_key = api_key or ""
+        self.engine_mode = engine_mode
         self.previous_interaction_id: str | None = None
         self.pending_action: dict | None = None
-        self._client = genai.Client(api_key=api_key)
+        self.autonomous_engine = AutonomousFinEngine(student_id)
+        self._client = None
+        try:
+            if self.api_key:
+                self._client = genai.Client(api_key=self.api_key)
+        except Exception:
+            self._client = None
 
     def _system_prompt(self) -> str:
         return _SYSTEM_PROMPT
 
     def chat(self, user_message: str) -> str:
         """Send a message, resolve tool calls, return text response."""
-        create_kwargs = dict(
-            model="gemini-3.8-flash",
-            input=user_message,
-            system_instruction=self._system_prompt(),
-            tools=TOOL_DECLARATIONS,
+        use_gemini = (
+            self.engine_mode == "gemini" or
+            (self.engine_mode == "auto" and self._client is not None and self.api_key and self.api_key not in ["demo-placeholder", "none", "local"])
         )
-        if self.previous_interaction_id:
-            create_kwargs["previous_interaction_id"] = self.previous_interaction_id
 
-        interaction = self._client.interactions.create(**create_kwargs)
-        self.previous_interaction_id = interaction.id
+        if not use_gemini:
+            resp, pending = self.autonomous_engine.process_query(user_message)
+            if pending:
+                self.pending_action = pending
+            return resp
 
-        for step in interaction.steps:
-            step_type = getattr(step, "type", None)
-            if step_type == "function_call":
-                tool_name = step.name
-                tool_args = dict(step.arguments) if step.arguments else {}
-                result = dispatch_tool(tool_name, tool_args)
-                if isinstance(result, dict) and result.get("confirmation_required"):
-                    self.pending_action = {"tool": tool_name, "args": tool_args, "preview": result}
-                    return self._format_confirmation_preview(tool_name, result)
+        try:
+            create_kwargs = dict(
+                model="gemini-3.8-flash",
+                input=user_message,
+                system_instruction=self._system_prompt(),
+                tools=TOOL_DECLARATIONS,
+            )
+            if self.previous_interaction_id:
+                create_kwargs["previous_interaction_id"] = self.previous_interaction_id
 
-        return interaction.output_text or "I'm here to help!"
+            interaction = self._client.interactions.create(**create_kwargs)
+            self.previous_interaction_id = interaction.id
+
+            for step in interaction.steps:
+                step_type = getattr(step, "type", None)
+                if step_type == "function_call":
+                    tool_name = step.name
+                    tool_args = dict(step.arguments) if step.arguments else {}
+                    result = dispatch_tool(tool_name, tool_args)
+                    if isinstance(result, dict) and result.get("confirmation_required"):
+                        self.pending_action = {"tool": tool_name, "args": tool_args, "preview": result}
+                        return self._format_confirmation_preview(tool_name, result)
+
+            return interaction.output_text or "I'm here to help!"
+        except Exception:
+            # Fallback seamlessly to local autonomous engine if cloud API call fails
+            resp, pending = self.autonomous_engine.process_query(user_message)
+            if pending:
+                self.pending_action = pending
+            return resp
 
     def confirm_action(self) -> str:
         """Execute the pending write action after user confirmation."""

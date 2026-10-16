@@ -28,17 +28,18 @@ CrossPay is architected as a clean, decoupled 6-tier system:
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
 ┌───────────────────────────────────▼────────────────────────────────────┐
-│                       AGENTIC ORCHESTRATION LAYER                      │
-│  src/agent.py (CrossPayAgent)                                          │
-│  • Gemini 3.8 Flash function-calling runtime                           │
-│  • Stateful conversation persistence (previous_interaction_id)         │
+│                  DUAL-ENGINE AGENTIC ORCHESTRATION LAYER               │
+│  src/agent.py (CrossPayAgent) · src/autonomous_engine.py               │
+│  • Engine A: Autonomous On-Device Model (100% Offline, Zero API Key)   │
+│    - models/crosspay_intent_classifier.joblib (18-class NLP model)     │
+│  • Engine B: Cloud Google Gemini 3.8 Flash (Multi-turn hybrid mode)    │
 │  • 2-Step Confirmation Gate (intercepts write/regulated actions)       │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
 ┌───────────────────────────────────▼────────────────────────────────────┐
 │                    TOOL REGISTRY & ROUTING LAYER                       │
 │  src/tool_registry.py                                                  │
-│  • 13 Gemini Function Declarations (JSON Schema)                       │
+│  • 14 Gemini Function Declarations (JSON Schema)                       │
 │  • dispatch_tool(name, args) dynamic router                            │
 └───────────────────┬───────────────────────────────────┬────────────────┘
                     │                                   │

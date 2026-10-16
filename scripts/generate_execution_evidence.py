@@ -92,6 +92,11 @@ def main():
             {"student_id": "STU001"},
             "Analytics: 6-month credit score progression trajectory"
         ),
+        (
+            "get_worldbank_remittance",
+            {"country": "Bangladesh", "flow": "outflow", "year": 2023},
+            "World Bank: Official remittance macro outflows for Bangladesh (2023)"
+        ),
     ]
 
     results = []

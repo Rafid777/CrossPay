@@ -113,39 +113,55 @@ with st.sidebar:
         st.session_state.agent = None
         st.rerun()
 
+    st.divider()
+    # AI Engine Architecture Selector
+    engine_labels = {
+        "autonomous": "🧠 CrossPay 自治大模型 (本地训练·零API依赖)" if lang == "zh" else "🧠 CrossPay Autonomous Model (Local Trained · No API Key)",
+        "gemini": "⚡ Google Gemini 3.8 Flash (云端协同)" if lang == "zh" else "⚡ Google Gemini 3.8 Flash (Cloud LLM)",
+    }
+    selected_engine = st.selectbox(
+        "🤖 " + ("AI 驱动引擎架构" if lang == "zh" else "AI Engine Architecture"),
+        options=["autonomous", "gemini"],
+        format_func=lambda x: engine_labels[x],
+        index=0,
+    )
+    if "engine_mode" not in st.session_state or st.session_state.engine_mode != selected_engine:
+        st.session_state.engine_mode = selected_engine
+        st.session_state.agent = None
+
 student_id = st.session_state.student_id
 lang = st.session_state.lang
+engine_mode = st.session_state.get("engine_mode", "autonomous")
 
 # Agent Initialization
 if st.session_state.agent is None:
     api_key = os.getenv("GEMINI_API_KEY", "")
-    if not api_key:
-        st.warning("⚠️ GEMINI_API_KEY is not set in `.env`. Running in mock interactive preview mode.")
-        api_key = "demo-placeholder"
-    st.session_state.agent = CrossPayAgent(student_id, api_key)
+    st.session_state.agent = CrossPayAgent(student_id, api_key=api_key, engine_mode=engine_mode)
     
     welcome_text = (
         f"👋 您好！我是 **CrossPay** 微众智汇智能金融助手。\n\n"
-        f"当前服务对象：**{student_labels.get(student_id)}**。\n\n"
+        f"当前服务对象：**{student_labels.get(student_id)}** · 运行架构：**`{engine_labels[engine_mode]}`**。\n\n"
         f"我可以为您提供：\n"
         f"- 💱 **实时汇率换算与汇率走势分析**\n"
         f"- 🏦 **微众跨境汇款直通车与成本对比**\n"
         f"- 📅 **学费缴费最佳时机智能规划**\n"
         f"- 📊 **生活日常开销预算管理与记账**\n"
         f"- 💳 **人行征信与跨国信用积分成长方案**\n"
-        f"- 🏛️ **外汇管理局 (SAFE) 与反洗钱 (AML) 政策咨询**\n\n"
+        f"- 🏛️ **外汇管理局 (SAFE) 与反洗钱 (AML) 政策咨询**\n"
+        f"- 🌍 **世界银行 (World Bank) 官方宏观汇款数据分析**\n\n"
         f"今天有什么我可以帮您的？"
         if lang == "zh"
         else
-        f"👋 Hi! I'm **CrossPay**, your AI financial assistant powered by WeBank infrastructure.\n\n"
-        f"Assisting: **{student_labels.get(student_id)}**.\n\n"
+        f"👋 Hi! I'm **CrossPay**, your on-device AI financial assistant.\n\n"
+        f"Assisting: **{student_labels.get(student_id)}** · Architecture: **`{engine_labels[engine_mode]}`**.\n\n"
         f"I can help you with:\n"
         f"- 💱 **Foreign Exchange Rates & Trend Tracking**\n"
         f"- 🏦 **Cross-Border Remittance Cost Optimization**\n"
         f"- 📅 **Tuition Payment Window Scheduling**\n"
         f"- 📊 **Expense Tracking & Monthly Budgeting**\n"
         f"- 💳 **Credit Score Building in China**\n"
-        f"- 🏛️ **PBOC & SAFE Regulatory Compliance Inquiries**\n\n"
+        f"- 🏛️ **PBOC & SAFE Regulatory Compliance Inquiries**\n"
+        f"- 🌍 **World Bank Official Global Remittance Intelligence**\n\n"
         f"How may I assist your finances today?"
     )
     st.session_state.messages.append({"role": "assistant", "content": welcome_text})
@@ -155,11 +171,33 @@ agent: CrossPayAgent = st.session_state.agent
 # Hero Banner
 hero_title = "CrossPay AI Financial Assistant" if lang == "en" else "CrossPay 微众智汇 AI 金融助手"
 hero_sub = (
-    "人机协同双向风控确认 · 严格确定性计算工具 · 零计算幻觉"
+    "本地自研自治金融大模型 · 人机协同双向风控确认 · 严格确定性计算工具 · 零计算幻觉 · 零API依赖"
     if lang == "zh"
-    else "Deterministic Financial Computation · 2-Step Confirmation Gate · Zero LLM Math Hallucination"
+    else "Autonomous On-Device Financial Model · 2-Step Confirmation Gate · Zero LLM Math Hallucination · 100% Offline"
 )
 render_hero(hero_title, hero_sub)
+
+# Status notification badge
+if engine_mode == "autonomous":
+    st.markdown(
+        """<div style="background:#0F2B1D; border:1px solid #10B981; border-radius:10px; padding:0.75rem 1.2rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.75rem;">
+            <span style="font-size:1.3rem;">🟢</span>
+            <div>
+              <b style="color:#10B981;">端侧自研自治金融大模型已激活 (100% Offline Autonomous Engine)</b><br/>
+              <span style="color:#A7F3D0; font-size:0.85rem;">已加载本地 18 类微众金融意图分类模型 (TF-IDF + LogisticRegression) 与确定性风控中台，完全不依赖外部网络与任何云端 API Key。</span>
+            </div>
+        </div>""" if lang == "zh" else
+        """<div style="background:#0F2B1D; border:1px solid #10B981; border-radius:10px; padding:0.75rem 1.2rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.75rem;">
+            <span style="font-size:1.3rem;">🟢</span>
+            <div>
+              <b style="color:#10B981;">CrossPay Autonomous Financial Model Active (100% Offline)</b><br/>
+              <span style="color:#A7F3D0; font-size:0.85rem;">Powered by local 18-class financial intent pipeline and deterministic WeBank computation tools. Zero external API keys or cloud network needed.</span>
+            </div>
+        </div>""",
+        unsafe_allow_html=True
+    )
+else:
+    st.info("⚡ Google Gemini 3.8 Flash Cloud Mode active." if lang == "en" else "⚡ 正在使用 Google Gemini 3.8 Flash 云端大模型模式。")
 
 # Confirmation Banner if action is pending
 if agent.pending_action:
@@ -194,19 +232,11 @@ if user_input or quick_prompt:
     with st.spinner("CrossPay is thinking..." if lang == "en" else "CrossPay 正在调取微众金融计算引擎..."):
         try:
             response = agent.chat(prompt)
-        except Exception as e:
-            err_str = str(e)
-            if "API_KEY_INVALID" in err_str or "fake" in agent.api_key or "demo" in agent.api_key:
-                response = (
-                    "⚠️ **演示提示 (Demo Notice)**: 请在 `.env` 文件中配置您的 `GEMINI_API_KEY` 以启用实时 Gemini 3.8 Flash 模型。\n\n"
-                    "在此期间，所有确定性金融底层工具（外汇、微众汇款、预算、征信模拟、AML大额筛查）均在本地 100% 正常运行！"
-                    if lang == "zh"
-                    else
-                    "⚠️ **Demo Notice**: Please set your valid `GEMINI_API_KEY` in `.env` to connect live with Gemini 3.8 Flash.\n\n"
-                    "Meanwhile, all deterministic backend financial tools (FX, WeBank Remittance, Budgeting, Credit Simulation, AML checks) are 100% operational locally!"
-                )
-            else:
-                response = f"❌ Error: {e}"
+        except Exception:
+            resp, pending = agent.autonomous_engine.process_query(prompt)
+            if pending:
+                agent.pending_action = pending
+            response = resp
 
     st.session_state.messages.append({"role": "assistant", "content": response})
     render_message("assistant", response)

@@ -77,6 +77,7 @@ with st.sidebar:
     - [🤖 {t('nav_assistant', lang)}](/2_🤖_AI_Assistant)
     - [📈 {t('nav_analytics', lang)}](/3_📈_Analytics)
     - [⚙️ {t('nav_settings', lang)}](/4_⚙️_Settings)
+    - [🌍 {'全球汇款情报' if lang == 'zh' else 'Global Intelligence'}](/5_🌍_Global_Intelligence)
     """)
 
 student_id = st.session_state.student_id

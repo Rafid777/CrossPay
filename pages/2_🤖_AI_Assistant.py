@@ -95,6 +95,7 @@ with st.sidebar:
             ("🌐 同行消费基准", "对比来华留学生群体的月度平均生活费与学费基准。"),
             ("💳 提升中国征信", "作为国际留学生，我在中国有哪些安全合规建立良好征信的方法？"),
             ("⚖️ 反洗钱合规自查", "请帮我检查单笔 $12,000 美元的汇款是否会触发外汇反洗钱合规申报？"),
+            ("🛡️ 反诈安全排查", "有人在微信群里说可以8折优惠代缴大学学费，还有人想高价租借我的银行卡，这是诈骗吗？"),
         ]
     else:
         quick_actions = [
@@ -107,6 +108,7 @@ with st.sidebar:
             ("🌐 Cohort Benchmarks", "Show me international student cohort spending benchmarks for China."),
             ("💳 Credit Building Tips", "How can an international student build credit history in China?"),
             ("⚖️ AML Compliance Check", "Check if a $12,000 USD transfer will trigger AML reporting requirements."),
+            ("🛡️ Anti-Scam Check", "Someone offered me a 20% discount on tuition on WeChat, and someone asked to rent my bank card. Is this a scam?"),
         ]
 
     for label, prompt in quick_actions:

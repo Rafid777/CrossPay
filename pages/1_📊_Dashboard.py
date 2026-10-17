@@ -244,5 +244,35 @@ with right_col:
     for ins in insights:
         st.markdown(f"- {ins}")
 
+    # Anti-Fraud & Risk Status Card
+    st.markdown("<br/>", unsafe_allow_html=True)
+    st.markdown(f"##### 🛡️ {'智能反诈与风控状态' if lang == 'zh' else 'Anti-Fraud & Risk Defense Status'}")
+    af_title = "国家反诈中心重点保护中" if lang == "zh" else "Protected by National Anti-Fraud Baseline"
+    af_badge = "🟢 正常受控 (LOW RISK)" if lang == "zh" else "🟢 ACTIVE / LOW RISK"
+    af_l1 = "• 《反电信网络诈骗法》实时监控已启用" if lang == "zh" else "• PRC Anti-Telecom Fraud Law Monitoring: ACTIVE"
+    af_l2 = "• “断卡行动”地下钱庄私自换汇拦截已生效" if lang == "zh" else "• 'Card Break Action' Underground FX Interception: ACTIVE"
+    af_l3 = "• 学费代缴骗局（盗卡代充）特征库已同步" if lang == "zh" else "• Tuition Proxy Payment Scam Heuristics: SYNCHRONIZED"
+    af_hotline = "全国反诈劝阻预警专线: " if lang == "zh" else "China Anti-Fraud Emergency Hotline: "
+    
+    st.markdown(
+        f"""
+        <div style="background: rgba(10, 36, 99, 0.05); border: 1px solid rgba(10, 36, 99, 0.15); border-radius: 10px; padding: 14px; margin-top: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 600; font-size: 13px; color: #0A2463;">{af_title}</span>
+                <span style="background: #E8F5E9; color: #2E7D32; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 600;">{af_badge}</span>
+            </div>
+            <div style="font-size: 12px; color: #444; margin-top: 8px; line-height: 1.6;">
+                {af_l1}<br/>
+                {af_l2}<br/>
+                {af_l3}
+            </div>
+            <div style="margin-top: 10px; font-size: 11px; color: #888;">
+                {af_hotline}<b>96110</b>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
 st.markdown("<br/>", unsafe_allow_html=True)
 render_compliance_footer(lang=lang)

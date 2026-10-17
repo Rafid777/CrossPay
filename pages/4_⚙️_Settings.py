@@ -118,6 +118,11 @@ with col_sec:
     
     - **📝 {'零知识敏感隐私脱敏 (PII Masking)' if lang == 'zh' else 'PII Masking & Privacy'}:**
       - {'所有护照号、8位以上银行卡号在写入日志前由正则自动掩码为 ****' if lang == 'zh' else 'All 8+ digit bank accounts and passport numbers masked with **** before logging'}
+    
+    - **🚨 {'反电信网络诈骗与风控拦截 (Anti-Fraud)' if lang == 'zh' else 'Anti-Telecom Fraud & Scam Engine'}:**
+      - {'严格贯彻《中华人民共和国反电信网络诈骗法》与“断卡行动”监管准则' if lang == 'zh' else 'Enforces PRC Anti-Telecom Fraud Law & PBOC "Card Break Action" mandates'}
+      - {'学费代缴盗卡风险筛查（非官方渠道折扣 ≥ 10% 自动锁定）' if lang == 'zh' else 'Tuition proxy payment scam detection (unauthorized discounts ≥ 10% locked)'}
+      - {'社交网络私下换汇“断卡”风险拦截，直联全国反诈劝阻专线 96110' if lang == 'zh' else 'P2P chat exchange freeze defense, connected to China Anti-Fraud Hotline 96110'}
     """)
 
     # Audit log status

@@ -205,3 +205,26 @@ def test_fraud_tools_in_tool_declarations():
     assert "screen_peer_exchange_risk" in names
     assert "evaluate_transaction_fraud_risk" in names
     assert "check_telecom_fraud_keywords" in names
+
+
+def test_autonomous_engine_detects_tuition_scam_query_en():
+    from src.autonomous_engine import AutonomousFinEngine
+    engine = AutonomousFinEngine("STU001")
+    response = engine.chat("Someone on WeChat offered me 20% discount on my tuition, is it a scam?")
+    assert "scam" in response.lower() or "fraud" in response.lower()
+    assert "96110" in response or "chargeback" in response.lower()
+
+
+def test_autonomous_engine_detects_card_break_risk_zh():
+    from src.autonomous_engine import AutonomousFinEngine
+    engine = AutonomousFinEngine("STU001")
+    response = engine.chat("有人想租借我的银行卡和微信支付二维码跑分，可以借吗？")
+    assert "断卡" in response or "违法" in response or "反诈" in response or "96110" in response
+
+
+def test_autonomous_engine_telecom_safe_account_warning():
+    from src.autonomous_engine import AutonomousFinEngine
+    engine = AutonomousFinEngine("STU001")
+    response = engine.chat("Police told me my account is frozen and asked to transfer money to a safe account")
+    assert "safe account" in response.lower() or "安全账户" in response or "fraud" in response.lower()
+    assert "96110" in response

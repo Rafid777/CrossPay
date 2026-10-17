@@ -230,6 +230,12 @@ class AutonomousFinEngine:
             return "get_cohort_spending_benchmarks", 0.98
         if any(w in text_lower for w in ["cips", "clearing window", "跨境支付系统", "清算窗口"]):
             return "get_cips_clearing_window", 0.98
+        if any(w in text_lower for w in [
+            "scam", "fraud", "tuition discount", "discount on tuition", "cheap tuition", "safe account",
+            "rent bank card", "card break", "96110", "代缴", "打折学费", "优惠学费", "安全账户", "私自换汇",
+            "地下钱庄", "租卡", "借卡", "跑分", "断卡", "反诈", "公检法", "安全基金", "私下换汇"
+        ]):
+            return "fraud_check", 0.99
 
         # 1. Primary: Run trained production ML pipeline (98.69% CV accuracy)
         if self.pipeline is not None:
@@ -295,6 +301,11 @@ class AutonomousFinEngine:
         """Compatibility method returning intent name."""
         intent, _ = self.predict_intent_with_confidence(text)
         return intent
+
+    def chat(self, text: str) -> str:
+        """Direct conversational query interface returning text response."""
+        resp, _ = self.process_query(text)
+        return resp
 
     def process_query(self, text: str) -> tuple[str, dict | None]:
         """
@@ -1092,6 +1103,95 @@ class AutonomousFinEngine:
                 )
             return resp, None
 
+        # ── 25. fraud_check ───────────────────────────────────────────────────
+        if intent == "fraud_check":
+            text_l = text.lower()
+            # 1. Run telecom keyword detector
+            kw_res = dispatch_tool("check_telecom_fraud_keywords", {"text": text})
+            if kw_res.get("fraud_pattern_detected"):
+                if lang == "zh":
+                    resp = (
+                        f"### 🛡️ 微众反诈安全风控预警 (PRC Anti-Fraud Engine)\n\n"
+                        f"🚨 **检出电信网络诈骗高危特征**: `{kw_res['pattern_type']}`\n"
+                        f"- **匹配特征关键词**: `{kw_res['matched_keyword']}`\n"
+                        f"- **安全风险等级**: **`{kw_res['severity']} (极度危险)`**\n\n"
+                        f"{kw_res['warning_zh']}\n\n"
+                        f"📞 **公安部全国统一反诈预警劝阻专线**: **`{kw_res['hotline']}`**\n"
+                        f"⚠️ *请坚决做到：不轻信、不转账、不透露个人验证码与银行密码！*"
+                    )
+                else:
+                    resp = (
+                        f"### 🛡️ WeBank Anti-Fraud & Scam Interception Alert\n\n"
+                        f"🚨 **High-Risk Fraud Pattern Detected**: `{kw_res['pattern_type']}`\n"
+                        f"- **Trigger Keyword**: `{kw_res['matched_keyword']}`\n"
+                        f"- **Risk Level**: **`{kw_res['severity']} (EXTREME DANGER)`**\n\n"
+                        f"{kw_res['warning_en']}\n\n"
+                        f"📞 **China National Anti-Fraud Hotline**: **`{kw_res['hotline']}`**\n"
+                        f"⚠️ *Mandatory Protection Rule: Never transfer funds to 'safe accounts' or rent out bank cards!*"
+                    )
+                return resp, None
+
+            # 2. Check if tuition proxy scam query
+            if any(w in text_l for w in ["tuition", "学费", "代缴", "discount", "打折", "代交", "cheap"]):
+                t_amt = 10000.0
+                quoted = 8000.0 if any(w in text_l for w in ["discount", "打折", "8折", "cheap", "20%"]) else 10000.0
+                t_res = dispatch_tool("screen_tuition_proxy_scam", {
+                    "tuition_amount_cny": t_amt,
+                    "quoted_cost_cny": quoted,
+                    "payment_channel": "Third-Party Agent",
+                    "is_official_portal": False,
+                })
+                if lang == "zh":
+                    flags = "\n".join([f"- ⚠️ {f}" for f in t_res["red_flags"]])
+                    resp = (
+                        f"### 🛡️ 学费代缴骗局智能风险筛查 (Tuition Proxy Scam Defense)\n\n"
+                        f"- **风险等级**: **`{t_res['risk_tier']}`** (风控风险分: `{t_res['risk_score']}/100`)\n"
+                        f"- **识别状态**: `{'🚨 检出高危学费代缴陷阱' if t_res['scam_detected'] else '🟡 非官方渠道风险提示'}`\n"
+                        f"- **代缴折扣率**: `{t_res['discount_pct']}%`\n\n"
+                        f"**核心风险隐患 (Red Flags)**:\n{flags}\n\n"
+                        f"💡 **微众风控处置建议**:\n{t_res['recommendation']}\n\n"
+                        f"⚖️ **法规警示**: {t_res['legal_warning']}"
+                    )
+                else:
+                    flags = "\n".join([f"- ⚠️ {f}" for f in t_res["red_flags"]])
+                    resp = (
+                        f"### 🛡️ Tuition Proxy Payment Scam Risk Screening\n\n"
+                        f"- **Risk Level**: **`{t_res['risk_tier']}`** (Risk Score: `{t_res['risk_score']}/100`)\n"
+                        f"- **Scam Detected**: `{'🚨 Confirmed Tuition Proxy Scam' if t_res['scam_detected'] else '🟡 Non-Official Channel Caution'}`\n"
+                        f"- **Discount Offered**: `{t_res['discount_pct']}%`\n\n"
+                        f"**Identified Red Flags**:\n{flags}\n\n"
+                        f"💡 **WeBank Protection Advice**:\n{t_res['recommendation']}\n\n"
+                        f"⚖️ **Legal Advisory**: {t_res['legal_warning']}"
+                    )
+                return resp, None
+
+            # 3. Fallback P2P exchange / Card Break screener
+            p2p_res = dispatch_tool("screen_peer_exchange_risk", {
+                "amount": 5000.0,
+                "currency": "CNY",
+                "counterparty_type": "Private Individual",
+                "platform": "WeChat/Telegram Group",
+            })
+            if lang == "zh":
+                resp = (
+                    f"### 🛡️ 社交私下换汇与“断卡行动”风控预警\n\n"
+                    f"- **银行卡司法冻结风险**: **`{'🚨 极高风险 (司法冻结)' if p2p_res['card_freeze_risk'] else '正常'}`**\n"
+                    f"- **风控风险分值**: `{p2p_res['risk_score']}/100` (等级: **{p2p_res['risk_tier']}**)\n\n"
+                    f"{p2p_res['warning_zh']}\n\n"
+                    f"💡 **合规建议**: {p2p_res['official_channel_advice']}\n"
+                    f"📞 **反诈专线**: `{p2p_res.get('hotline', '96110')}`"
+                )
+            else:
+                resp = (
+                    f"### 🛡️ Peer-to-Peer FX & 'Card Break Action' Risk Alert\n\n"
+                    f"- **Bank Card Freeze Risk**: **`{'🚨 HIGH RISK OF JUDICIAL FREEZE' if p2p_res['card_freeze_risk'] else 'Normal'}`**\n"
+                    f"- **Risk Score**: `{p2p_res['risk_score']}/100` (Tier: **{p2p_res['risk_tier']}**)\n\n"
+                    f"{p2p_res['warning_en']}\n\n"
+                    f"💡 **Compliance Advice**: {p2p_res['official_channel_advice']}\n"
+                    f"📞 **Anti-Fraud Hotline**: `{p2p_res.get('hotline', '96110')}`"
+                )
+            return resp, None
+
         # ── Help fallback ─────────────────────────────────────────────────────
         if lang == "zh":
             resp = (
@@ -1105,6 +1205,7 @@ class AutonomousFinEngine:
                 f"| **日常记账** | `记一笔支出：食堂吃饭 35 元` (带双向确认) |\n"
                 f"| **征信提分** | `模拟办理保证金信用卡对征信的提升` |\n"
                 f"| **合规风控** | `检查 12000 美元汇款是否会触发外汇反洗钱申报` |\n"
+                f"| **反诈风控** | `有人微信优惠代缴学费8折，安全吗？` |\n"
                 f"| **世界银行** | `世界银行统计孟加拉国每年向外汇出多少资金` |\n\n"
                 f"🛡️ *所有数据均由微众本地银行级安全算法处理，严格防范算术幻觉。*"
             )
@@ -1120,7 +1221,13 @@ class AutonomousFinEngine:
                 f"| **Budgeting** | `Record 45 CNY for lunch` (with 2-step confirmation) |\n"
                 f"| **Credit** | `Simulate opening a secured card` |\n"
                 f"| **AML Check** | `Check if $12,000 transfer triggers AML reporting` |\n"
+                f"| **Anti-Fraud** | `Is it safe if someone offers 20% discount on tuition?` |\n"
                 f"| **World Bank** | `World Bank remittance outflow data for Bangladesh` |\n\n"
                 f"🛡️ *All calculations run on deterministic local financial code.*"
             )
         return resp, None
+
+
+# Polymorphic Aliases
+AutonomousFinTechEngine = AutonomousFinEngine
+

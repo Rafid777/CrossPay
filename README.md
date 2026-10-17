@@ -104,7 +104,7 @@ Powered by a **Dual Autonomous Intelligence Engine** (100% offline local rule/st
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
-- Python 3.10 – 3.14 (Verified on Python 3.14.3)
+- Python 3.11 – 3.14 (Verified on Python 3.14.3)
 - Gemini API key (Optional — system runs 100% offline without it)
 
 ### 1. Clone & Install

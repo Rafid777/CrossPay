@@ -7,7 +7,7 @@ name = "crosspay"
 version = "2.1.0"
 description = "AI Financial Assistant & RegTech Platform for International Students in China"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [
     { name = "CrossPay Engineering Team", email = "crosspay-team@webank-challenge.org" }
@@ -27,7 +27,6 @@ classifiers = [
     "Intended Audience :: Financial and Insurance Industry",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",

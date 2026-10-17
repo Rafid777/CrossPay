@@ -2,6 +2,7 @@ import json
 import os
 import urllib.request
 from datetime import datetime, timezone
+from typing import Dict, Any, List, Optional
 
 # Baseline reference rates (Base: USD, calibrated with PBOC & global interbank standards)
 _BASELINE_RATES_TO_USD = {

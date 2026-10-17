@@ -94,12 +94,14 @@ $$\text{Health Score} = \text{Credit}\times 0.30 + \text{Discipline}\times 0.25 
 
 ---
 
-## 4. Complete Tool Specification (13 Tools)
+## 4. Complete Tool Specification (24 Deterministic Tools)
 
 | Tool Name | Module | Tier | Description & Return Schema |
 |---|---|---|---|
 | `get_exchange_rate` | `fx.py` | 0 | Returns `{rate, from_currency, to_currency, provider, timestamp, fee_pct}` |
 | `convert_amount` | `fx.py` | 0 | Deterministic conversion: `{original, converted, rate, fee_usd, provider}` |
+| `get_pboc_central_parity_rate` | `fx.py` | 0 | PBOC central parity rate (中间价) with ±2% band & buy/sell cash rates |
+| `get_fx_volatility_metrics` | `fx.py` | 0 | 30-day Bollinger bands, z-scores, and OPTIMAL_BUY recommendations |
 | `compare_remittance_options` | `remittance.py` | 0 | Returns 4 providers sorted by total cost (WeBank Direct, Wise, UnionPay, SWIFT) |
 | `schedule_tuition_payment` | `remittance.py` | 2 | Analyzes FX cycles; returns `{optimal_window, projected_rate, confirmation_required: True}` |
 | `get_spending_summary` | `budget.py` | 0 | Summarizes monthly category spending and budget utilization percentage |
@@ -107,10 +109,21 @@ $$\text{Health Score} = \text{Credit}\times 0.30 + \text{Discipline}\times 0.25 
 | `get_credit_profile` | `credit.py` | 0 | Returns score, tier, 5 actionable student credit tips, and next score milestone |
 | `simulate_credit_action` | `credit.py` | 0 | Simulates credit score changes (e.g., +25 points for secured credit card) |
 | `check_aml_threshold` | `compliance.py` | 2 | Checks transactions against $10,000 USD limit for PBOC/SAFE compliance |
+| `check_aml_structuring` | `compliance.py` | 2 | Detects micro-transactions avoiding the $10,000 USD AML threshold |
 | `check_sanctioned_destination` | `compliance.py` | 2 | Evaluates country code against 10 international sanctioned destinations |
+| `check_safe_quota` | `compliance.py` | 2 | Evaluates SAFE $50k USD quota & Circular [2020] No.17 tuition exemptions |
+| `verify_student_tuition_eligibility`| `compliance.py` | 0 | Verifies student X1/X2 visa and tuition invoice for quota exemption |
+| `get_cips_clearing_window` | `compliance.py` | 0 | Returns PBOC CIPS interbank clearing window status (09:00–17:00 CST) |
 | `get_fx_trend` | `analytics.py` | 0 | Retrieves 30-day daily historical FX rates against CNY for charting |
 | `get_spending_trend` | `analytics.py` | 0 | Aggregates 6-month historical spending grouped by category |
 | `get_credit_trend` | `analytics.py` | 0 | Returns 6-month historical credit score trajectory data |
+| `get_worldbank_remittance` | `analytics.py` | 0 | Official World Bank remittance volumes and 5-year CAGR across 221 nations |
+| `detect_spending_anomalies` | `analytics.py` | 0 | Tukey's IQR statistical anomaly detector over student transaction history |
+| `get_cohort_spending_benchmarks` | `analytics.py` | 0 | Aggregates cohort spending benchmarks from 5,000 empirical student records |
+| `screen_tuition_proxy_scam` | `fraud.py` | 2 | Evaluates tuition discount proposals against stolen credit card chargeback schemes |
+| `screen_peer_exchange_risk` | `fraud.py` | 2 | Evaluates P2P chat swaps under PBOC 'Card Break Action' (断卡行动) |
+| `evaluate_transaction_fraud_risk` | `fraud.py` | 2 | Computes 0–100 multi-factor transaction risk index (velocity, off-hours, channel) |
+| `check_telecom_fraud_keywords` | `fraud.py` | 2 | Scans text for PRC Anti-Telecom Fraud keywords (safe accounts, police impersonation) |
 
 ---
 

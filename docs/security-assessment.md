@@ -176,3 +176,37 @@ CrossPay underwent rigorous automated penetration and stress testing:
    - 100% coverage verification across all 10 OFAC/UN sanctioned country codes (`IR, KP, SY, CU, SD, MM, BY, VE, ZW, RU`).
 5. **Fuzzing & Unicode Integrity**:
    - Verified system stability against empty strings, 5,000-character repeats, multi-byte emojis, SQL injection patterns (`' OR 1=1; --`), and zero-width spaces. All handled gracefully without crash.
+
+---
+
+## 7. Anti-Telecom and Online Fraud Architecture (反电信网络诈骗与防洗钱风控体系)
+
+### 7.1 Regulatory Mandate & Student Threat Landscape
+Under the **PRC Anti-Telecom and Online Fraud Law (《中华人民共和国反电信网络诈骗法》)** enacted in late 2022, digital banks like WeBank bear direct statutory obligations to implement proactive fraud monitoring and cross-border risk interception. International students studying in China face two primary institutional threats:
+
+1. **Tuition Proxy Payment Scams (学费代缴盗卡陷阱)**:
+   - *Attack Mechanism*: Fraudulent brokers approach international students on WeChat or Telegram offering a "15%–25% student tuition discount". The fraudster uses stolen credit cards to pay university portals, collects cash from the student, and weeks later the card issuer charges back the payment. The student suffers complete loss of tuition and faces university expulsion.
+   - *CrossPay Defense (`screen_tuition_proxy_scam`)*: Automatically calculates discount variances. Unofficial channels offering discounts $\ge 10\%$ are classified as **CRITICAL RISK (95/100)** with immediate operational warning citing Ministry of Education directives and China's National Anti-Fraud Hotline (**96110**).
+
+2. **"Card Break Action" & Money Mule Schemes (断卡行动与出借银行卡/跑分风险)**:
+   - *Attack Mechanism*: Criminal syndicates recruit foreign students to "rent" or "lend" their Chinese bank debit cards, WeChat Pay QR codes, or Alipay accounts for laundering illicit funds.
+   - *CrossPay Defense (`screen_peer_exchange_risk`)*: Flags private chat group currency exchanges and P2P transfers. Alerts students that receiving illicit funds leads to immediate judicial bank account freezing under PBOC and Ministry of Public Security directives, with criminal liability under Chinese law.
+
+3. **Impersonation of Public Security & "Safe Accounts" (冒充公检法与安全账户诈骗)**:
+   - *Attack Mechanism*: Fraudsters posing as police or immigration officers claim the student's visa or bank account is implicated in a criminal case and demand transfer to a "safe verification account" (安全账户).
+   - *CrossPay Defense (`check_telecom_fraud_keywords`)*: Intercepts high-risk keywords in English and Chinese ("safe account", "安全账户", "公检法", "跑分", "租卡", "打折学费") and provides authoritative disclaimers: Chinese law enforcement never establishes safe accounts.
+
+### 7.2 Multi-Factor Transaction Fraud Risk Scoring Matrix
+The deterministic engine (`evaluate_transaction_fraud_risk`) computes a 0–100 composite index evaluating:
+- **Velocity**: Rapid bursts (>3 transactions/hour adds +35 points).
+- **Temporal Anomaly**: Nocturnal off-hours transfers (01:00–05:00 CST adds +25 points).
+- **Channel Verification**: Unverified P2P or anonymous QR codes adds +25 points.
+- **Large Amounts**: Single transfer $\ge 50,000$ CNY adds +20 points.
+
+| Risk Score | Tier | Action Triggered | UI Response |
+| :--- | :--- | :--- | :--- |
+| **0 – 29** | `LOW` | `PROCEED` | Standard 2-step confirmation |
+| **30 – 59** | `MEDIUM` | `WARN` | Educational anti-scam advisory notice |
+| **60 – 79** | `HIGH` | `STEP_UP_AUTH` | Step-up SMS OTP + identity re-verification |
+| **80 – 100** | `CRITICAL` | `HARD_BLOCK` | Operational freeze + 96110 reporting guidance |
+

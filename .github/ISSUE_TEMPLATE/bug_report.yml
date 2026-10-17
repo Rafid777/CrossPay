@@ -1,0 +1,42 @@
+name: 🐛 Bug Report
+description: Report a reproducible defect or unexpected behavior in CrossPay
+title: "[BUG]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for submitting a bug report! Please provide detailed steps to reproduce the issue.
+  - type: input
+    id: environment
+    attributes:
+      label: Operating Environment
+      description: OS version, Python version, and execution mode (Cloud Gemini or Autonomous Offline).
+      placeholder: "Windows 11 / Python 3.14.3 / Autonomous Local Mode"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the bug.
+      placeholder: |
+        1. Open Page 5 (Global Intelligence)
+        2. Enter currency BDT
+        3. Observe error...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually occurred? Include error traces or screenshots if applicable.
+    validations:
+      required: true

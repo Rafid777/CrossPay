@@ -4,6 +4,7 @@
 
 # Databases & local data
 data/crosspay.db
+data/snapshots/
 logs/*.jsonl
 *.log
 

@@ -15,19 +15,6 @@ Powered by a **Dual Autonomous Intelligence Engine** (100% offline local rule/st
 
 ---
 
-## 📑 Official Project Deliverables
-
-| Deliverable | Description | Links |
-| :--- | :--- | :--- |
-| **Deliverable 00** | **Master Operational Manual (10-Page Manual)** | [**📄 Download PDF**](docs/CrossPay_Master_Operational_Manual.pdf) · [**📖 View Markdown**](docs/master-operational-manual.md) |
-| **Deliverable 01** | Technical Documentation & Function Specification | [**Technical Documentation**](docs/technical-documentation.md) |
-| **Deliverable 02** | Competition Presentation Deck Outline | [**Presentation Deck**](presentation/slides-outline.md) |
-| **Deliverable 03** | Interactive Streamlit Demonstration Suite | `streamlit run app.py` (Local Port `8501`) |
-| **Deliverable 04** | Complete Production Source Code | Fully audited repository (144/144 tests passing) |
-| **Deliverable 05** | Security Self-Assessment Report (30% weight) | [**Security Assessment**](docs/security-assessment.md) |
-| **Deliverable 06** | Execution Audit Evidence & PII-Masked Ledger | [**Execution Summary**](docs/execution-evidence-summary.md) |
-
----
 
 ## 🌟 What Sets CrossPay Apart
 

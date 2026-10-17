@@ -30,4 +30,10 @@ jobs:
 
     - name: Run automated test suite with pytest
       run: |
-        python -m pytest tests/ -v --tb=short
+        python -m pytest tests/ -v --tb=short || {
+          echo "### Pytest Failure Details (${{ matrix.python-version }})" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          python -m pytest tests/ -v --tb=short -ra >> $GITHUB_STEP_SUMMARY 2>&1 || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          exit 1
+        }

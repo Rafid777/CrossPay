@@ -5,7 +5,7 @@ from src.tools.budget import (
     commit_set_budget_category, commit_add_expense
 )
 from src.tools.credit import get_credit_profile, simulate_credit_action
-from src.tools.compliance import check_aml_threshold, check_sanctioned_destination
+from src.tools.compliance import check_aml_threshold, check_sanctioned_destination, check_aml_structuring
 from src.tools.analytics import get_fx_trend, get_spending_trend, get_credit_trend, get_worldbank_remittance
 from src.logger import log_tool_call
 
@@ -125,6 +125,19 @@ TOOL_DECLARATIONS = [
         },
     },
     {
+        "name": "check_aml_structuring",
+        "description": "Detect AML structuring (smurfing) across a rolling multi-day window. Evaluates aggregate transfer volume against the $10,000 AML limit.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "student_id": {"type": "string", "description": "Student account ID"},
+                "new_amount_usd": {"type": "number", "description": "Proposed transfer amount in USD"},
+                "window_days": {"type": "integer", "description": "Rolling window in days (default 7)"},
+            },
+            "required": ["student_id", "new_amount_usd"],
+        },
+    },
+    {
         "name": "check_sanctioned_destination",
         "description": "Check if a destination country is on the international sanctions list. Must be called before any cross-border transfer.",
         "parameters": {
@@ -198,6 +211,7 @@ _TOOL_MAP = {
     "get_credit_profile": get_credit_profile,
     "simulate_credit_action": simulate_credit_action,
     "check_aml_threshold": check_aml_threshold,
+    "check_aml_structuring": check_aml_structuring,
     "check_sanctioned_destination": check_sanctioned_destination,
     "get_fx_trend": get_fx_trend,
     "get_spending_trend": get_spending_trend,

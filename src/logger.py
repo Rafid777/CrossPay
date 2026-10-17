@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from src.tools.compliance import mask_pii
 
 
@@ -27,7 +27,7 @@ def log_tool_call(
     output_summary = output_str[:200] + "..." if len(output_str) > 200 else output_str
 
     entry = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "tool_name": tool_name,
         "inputs": masked_inputs,
         "output_summary": output_summary,

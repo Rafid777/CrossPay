@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from src.db import get_db
 
 
@@ -32,6 +32,8 @@ def get_spending_summary(student_id: str, month: str) -> dict:
 
 def set_budget_category(student_id: str, category: str, amount_cny: float) -> dict:
     """Preview setting a budget limit — requires confirmation before committing."""
+    if amount_cny < 0:
+        raise ValueError("Budget limit must be non-negative.")
     return {
         "student_id": student_id,
         "category": category,
@@ -43,6 +45,8 @@ def set_budget_category(student_id: str, category: str, amount_cny: float) -> di
 
 def commit_set_budget_category(student_id: str, category: str, amount_cny: float) -> dict:
     """Actually commits the budget update after user confirmation."""
+    if amount_cny < 0:
+        raise ValueError("Budget limit must be non-negative.")
     conn = get_db()
     conn.execute(
         "INSERT INTO budgets (student_id, category, limit_cny) VALUES (?, ?, ?) "
@@ -56,11 +60,14 @@ def commit_set_budget_category(student_id: str, category: str, amount_cny: float
 
 def add_expense(student_id: str, amount_cny: float, category: str, note: str = "") -> dict:
     """Preview adding an expense — requires confirmation before committing."""
+    if amount_cny <= 0:
+        raise ValueError("Expense amount must be greater than zero.")
     # Read current balance for preview
     conn = get_db()
     row = conn.execute("SELECT balance_cny FROM accounts WHERE id = ?", (student_id,)).fetchone()
     conn.close()
     current = row["balance_cny"] if row else 0.0
+    new_bal = round(current - amount_cny, 2)
     return {
         "student_id": student_id,
         "amount_cny": amount_cny,
@@ -68,7 +75,8 @@ def add_expense(student_id: str, amount_cny: float, category: str, note: str = "
         "note": note,
         "recorded": False,
         "current_balance_cny": round(current, 2),
-        "new_balance_cny": round(current - amount_cny, 2),
+        "new_balance_cny": new_bal,
+        "is_overdraft": new_bal < 0,
         "confirmation_required": True,
         "action": "add_expense",
     }
@@ -76,8 +84,10 @@ def add_expense(student_id: str, amount_cny: float, category: str, note: str = "
 
 def commit_add_expense(student_id: str, amount_cny: float, category: str, note: str = "") -> dict:
     """Actually commits the expense after user confirmation."""
+    if amount_cny <= 0:
+        raise ValueError("Expense amount must be greater than zero.")
     conn = get_db()
-    timestamp = datetime.utcnow().isoformat() + "Z"
+    timestamp = datetime.now(timezone.utc).isoformat()
     conn.execute(
         "INSERT INTO expenses (student_id, amount_cny, category, note, timestamp) VALUES (?, ?, ?, ?, ?)",
         (student_id, amount_cny, category, note, timestamp)
@@ -88,6 +98,10 @@ def commit_add_expense(student_id: str, amount_cny: float, category: str, note: 
     )
     conn.commit()
     row = conn.execute("SELECT balance_cny FROM accounts WHERE id = ?", (student_id,)).fetchone()
-    new_balance = row["balance_cny"] if row else 0.0
+    new_balance = round(row["balance_cny"] if row else 0.0, 2)
     conn.close()
-    return {"recorded": True, "new_balance_cny": round(new_balance, 2)}
+    return {
+        "recorded": True,
+        "new_balance_cny": new_balance,
+        "is_overdraft": new_balance < 0,
+    }

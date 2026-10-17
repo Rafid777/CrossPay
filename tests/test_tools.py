@@ -1,9 +1,9 @@
 import pytest
 from src.tools.fx import get_exchange_rate, convert_amount
 from src.tools.remittance import compare_remittance_options, schedule_tuition_payment
-from src.tools.budget import get_spending_summary, set_budget_category, add_expense
+from src.tools.budget import get_spending_summary, set_budget_category, add_expense, commit_add_expense
 from src.tools.credit import get_credit_profile, simulate_credit_action
-from src.tools.compliance import check_aml_threshold, check_sanctioned_destination, mask_pii
+from src.tools.compliance import check_aml_threshold, check_sanctioned_destination, mask_pii, check_aml_structuring
 
 
 def test_get_exchange_rate_returns_valid_dict():
@@ -155,3 +155,58 @@ def test_get_spending_summary_structure():
     assert "categories" in result
     assert "total_cny" in result
     assert "vs_budget_pct" in result
+
+
+def test_add_expense_rejects_negative_or_zero_amount():
+    with pytest.raises(ValueError, match="Expense amount must be greater than zero"):
+        add_expense("STU001", -50.0, "food")
+    with pytest.raises(ValueError, match="Expense amount must be greater than zero"):
+        add_expense("STU001", 0.0, "food")
+
+
+def test_commit_add_expense_rejects_negative_or_zero_amount():
+    with pytest.raises(ValueError, match="Expense amount must be greater than zero"):
+        commit_add_expense("STU001", -50.0, "food")
+    with pytest.raises(ValueError, match="Expense amount must be greater than zero"):
+        commit_add_expense("STU001", 0.0, "food")
+
+
+def test_set_budget_category_rejects_negative_limit():
+    with pytest.raises(ValueError, match="Budget limit must be non-negative"):
+        set_budget_category("STU001", "food", -100.0)
+
+
+def test_convert_amount_rejects_negative_or_zero_amount():
+    with pytest.raises(ValueError, match="Conversion amount must be greater than zero"):
+        convert_amount(-100.0, "BDT", "CNY")
+    with pytest.raises(ValueError, match="Conversion amount must be greater than zero"):
+        convert_amount(0.0, "BDT", "CNY")
+
+
+def test_remittance_rejects_negative_or_zero_amount():
+    with pytest.raises(ValueError, match="Transfer amount must be greater than zero"):
+        compare_remittance_options(-500.0, "CN")
+    with pytest.raises(ValueError, match="Tuition amount must be greater than zero"):
+        schedule_tuition_payment("STU001", -8000.0, "2026-11-01")
+
+
+def test_aml_rejects_negative_or_zero_amount():
+    with pytest.raises(ValueError, match="Amount must be greater than zero"):
+        check_aml_threshold(-100.0)
+    with pytest.raises(ValueError, match="Amount must be greater than zero"):
+        check_aml_threshold(0.0)
+
+
+def test_aml_structuring_detection():
+    # Single safe amount
+    res = check_aml_structuring("STU001", 3000.0, window_days=7)
+    assert "structuring_detected" in res
+    assert res["new_amount_usd"] == 3000.0
+    assert "aggregate_usd_7d" in res
+    assert "risk_level" in res
+
+    # Single large amount above 10000
+    res_large = check_aml_structuring("STU001", 12000.0, window_days=7)
+    assert res_large["flagged"] is True
+    assert res_large["risk_level"] == "HIGH"
+

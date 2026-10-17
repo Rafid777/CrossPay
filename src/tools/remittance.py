@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 _PROVIDERS = [
     {"name": "SWIFT Bank Transfer", "fee_usd": 25.0, "fx_markup_pct": 0.025, "delivery_days": 3},
@@ -10,6 +10,8 @@ _PROVIDERS = [
 
 def compare_remittance_options(amount_usd: float, destination_country: str) -> list:
     """Compare remittance providers sorted by total cost (cheapest first)."""
+    if amount_usd <= 0:
+        raise ValueError("Transfer amount must be greater than zero.")
     options = []
     for p in _PROVIDERS:
         fx_cost = amount_usd * p["fx_markup_pct"]
@@ -31,8 +33,10 @@ def compare_remittance_options(amount_usd: float, destination_country: str) -> l
 
 def schedule_tuition_payment(student_id: str, amount_cny: float, due_date: str) -> dict:
     """Suggest optimal window to schedule a tuition payment."""
+    if amount_cny <= 0:
+        raise ValueError("Tuition amount must be greater than zero.")
     # Optimal window: next Monday (FX typically better at start of week)
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
     days_until_monday = (7 - today.weekday()) % 7 or 7
     optimal_date = today + timedelta(days=days_until_monday)
     return {

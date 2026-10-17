@@ -11,21 +11,26 @@ Combines:
 import re
 import os
 import joblib
-from datetime import datetime
+import numpy as np
+from datetime import datetime, timezone
 from src.tool_registry import dispatch_tool
 from src.db import get_db
 
-# Load Model
-MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models", "crosspay_intent_classifier.joblib")
+# Load Model: prioritize 1300-sample production model, fallback to base classifier
+PRODUCTION_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models", "crosspay_production_model.joblib")
+BASE_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models", "crosspay_intent_classifier.joblib")
 _ML_PIPELINE = None
 
 def get_ml_pipeline():
     global _ML_PIPELINE
-    if _ML_PIPELINE is None and os.path.exists(MODEL_PATH):
-        try:
-            _ML_PIPELINE = joblib.load(MODEL_PATH)
-        except Exception:
-            _ML_PIPELINE = None
+    if _ML_PIPELINE is None:
+        for path in [PRODUCTION_MODEL_PATH, BASE_MODEL_PATH]:
+            if os.path.exists(path):
+                try:
+                    _ML_PIPELINE = joblib.load(path)
+                    break
+                except Exception:
+                    continue
     return _ML_PIPELINE
 
 

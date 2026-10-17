@@ -21,3 +21,16 @@ def test_passport_never_stored_plaintext():
     rows = conn.execute("SELECT passport_number FROM accounts").fetchall()
     for row in rows:
         assert "****" in row[0], f"Passport not masked: {row[0]}"
+
+
+def test_foreign_keys_enforced():
+    import sqlite3
+    import pytest
+    conn = get_db(":memory:")
+    # Attempting to insert an expense for a non-existent student must raise IntegrityError
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute(
+            "INSERT INTO expenses (student_id, amount_cny, category, note, timestamp) VALUES (?, ?, ?, ?, ?)",
+            ("NON_EXISTENT_STU", 50.0, "food", "lunch", "2026-10-17T00:00:00Z")
+        )
+

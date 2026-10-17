@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Mock exchange rates (base: USD)
 _RATES_TO_USD = {
@@ -31,13 +31,15 @@ def get_exchange_rate(from_currency: str, to_currency: str) -> dict:
         "from_currency": from_currency.upper(),
         "to_currency": to_currency.upper(),
         "provider": "CrossPay FX (Mock Data)",
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "fee_pct": FEE_PCT * 100,
     }
 
 
 def convert_amount(amount: float, from_currency: str, to_currency: str) -> dict:
     """Convert an amount between currencies, applying provider fee."""
+    if amount <= 0:
+        raise ValueError("Conversion amount must be greater than zero.")
     rate_info = get_exchange_rate(from_currency, to_currency)
     rate = rate_info["rate"]
     gross_converted = amount * rate

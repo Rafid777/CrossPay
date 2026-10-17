@@ -234,7 +234,45 @@ if os.path.exists(csv_path):
         )
         fig_tp.update_layout(height=320, margin=dict(t=40, b=20, l=20, r=20), paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_tp, use_container_width=True)
-        
+
+    # ── Interactive Statistical Anomaly & Cohort Analysis ─────────────────────
+    from src.tools.analytics import detect_spending_anomalies, get_cohort_spending_benchmarks
+    st.divider()
+    
+    col_anom, col_bench = st.columns(2)
+    with col_anom:
+        st.markdown("##### 🔍 " + ("学生资金流水异常波动排查 (Tukey IQR)" if lang == "zh" else "Student Anomaly Screener (Tukey IQR)"))
+        anom_res = detect_spending_anomalies(student_id)
+        if anom_res["anomaly_count"] > 0:
+            st.warning(
+                f"⚠️ 检测到 {anom_res['anomaly_count']} 笔超出正常分布的异常支出 (已分析 {anom_res['total_transactions_analyzed']} 笔流水)"
+                if lang == "zh"
+                else f"⚠️ Flagged {anom_res['anomaly_count']} outlier transaction(s) across {anom_res['total_transactions_analyzed']} records."
+            )
+            for a in anom_res["anomalies_detected"][:3]:
+                st.caption(f"• **{a['date']}** | `{a['type']}`: **{a['amount']:,.0f} {a['currency']}** ({a['deviation_ratio']:.1f}x IQR threshold)")
+        else:
+            st.success(
+                f"🟢 流水正常：已分析 {anom_res['total_transactions_analyzed']} 笔流水，未发现异常消费突增。"
+                if lang == "zh"
+                else f"🟢 Normal behavior: {anom_res['total_transactions_analyzed']} records analyzed with zero abnormal spikes."
+            )
+
+    with col_bench:
+        st.markdown("##### 📊 " + ("同行留学生消费基准对比" if lang == "zh" else "Cohort Peer Spend Benchmarks"))
+        sel_country = st.selectbox(
+            "选择留学目的地" if lang == "zh" else "Select Destination Country",
+            options=["China", "Malaysia", "Germany", "UK", "Australia", "USA", "Canada"],
+            index=0,
+            key="cohort_country_sel"
+        )
+        c_bench = get_cohort_spending_benchmarks(sel_country)
+        cb1, cb2 = st.columns(2)
+        cb1.metric("月度生活费中位数" if lang == "zh" else "Median Monthly Living", f"¥{c_bench.get('median_living_expense', 0):,.0f} CNY")
+        cb2.metric("学费单笔中位数" if lang == "zh" else "Median Tuition Payment", f"¥{c_bench.get('median_tuition_payment', 0):,.0f} CNY")
+        st.caption(f"🏆 " + ("主流结算通道: " if lang == "zh" else "Top Channels: ") + ", ".join(c_bench.get("popular_channels", [])))
+
+    st.markdown("<br/>", unsafe_allow_html=True)
     st.markdown("##### 🔍 " + ("前100笔明细抽样浏览" if lang == "zh" else "Sample Transaction Explorer (Top 100)"))
     st.dataframe(df_synth.head(100), use_container_width=True)
     

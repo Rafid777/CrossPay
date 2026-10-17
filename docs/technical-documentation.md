@@ -153,12 +153,16 @@ CrossPay embeds an interactive model evaluation and operations suite directly in
 
 ## 7. Testing & Quality Assurance
 
-- **Total Automated Tests**: **96**
+- **Total Automated Tests**: **115**
 - **Test Command**: `python -m pytest tests/ -v`
-- **Pass Rate**: **100% (96/96)**
-- **Test Coverage**:
+- **Pass Rate**: **100% (115/115)**
+- **Test Coverage Across 11 Specialized Suites**:
   - `test_agent.py` (10 tests): Multi-turn stateful memory, tool calling, 2-step confirmation handling, API fallback
   - `test_tools.py` (35 tests): Deterministic mathematics, FX conversions with zero-fee same-currency logic, expanded international student currencies, remittance ordering, single & multi-day AML structuring flags, negative amount exploit guards, PII masking, tuition commitment alerts, and PyCountry sanctions screening
+  - `test_fx_accuracy.py` (4 tests): Live interbank rate fetching, PBOC official central parity rates (中间价), statutory +/-2% floating bands, commercial bank bid/ask spreads, and 30-day Bollinger band volatility models
+  - `test_compliance_accuracy.py` (5 tests): China SAFE $50k USD annual facilitation quota tracking, university tuition genuine non-quota exemption (Circular [2020] No.17), student eligibility verification (X1/X2 visa), and PBOC CIPS clearing window monitoring
+  - `test_data_accuracy.py` (3 tests): 5,000 empirical transaction processing, Tukey's IQR outlier and anomaly detection, and destination country peer spend benchmarks
+  - `test_nlp_accuracy.py` (7 tests): Advanced multilingual entity extraction (Chinese shorthand `5万`, `3千`, `10k`, relative dates `下周一`), high-precision intent classification, and autonomous chat generation
   - `test_logger.py` (13 tests): Audit logging, JSONL schema, PII redaction, tool dispatching
   - `test_db.py` (4 tests): SQLite creation, constraint verification, mock seeding, and strict foreign key integrity (`PRAGMA foreign_keys = ON`)
   - `test_analytics.py` (11 tests): Financial Health Score calculation, alerts engine, analytics querying, World Bank dataset integration, ReportLab PDF generation

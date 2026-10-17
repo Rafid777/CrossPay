@@ -99,3 +99,143 @@ def get_worldbank_remittance(country: str, flow: str = "outflow", year: int = 20
         "5yr_cagr_pct": cagr,
         "source": "World Bank Group — Migration & Remittances Data (official)",
     }
+
+
+def detect_spending_anomalies(student_id: str, threshold_iqr: float = 1.5) -> dict:
+    """
+    Empirical Anomaly Detection using Interquartile Range (IQR) on student transactions.
+    Identifies abnormal spikes in expenses or suspicious transfer volumes.
+    """
+    import numpy as np
+    conn = get_db()
+    # Check if synthetic_transactions table has user data
+    has_synth = conn.execute(
+        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='synthetic_transactions'"
+    ).fetchone()[0]
+    
+    txns = []
+    if has_synth:
+        rows = conn.execute(
+            "SELECT transaction_id, date, type, amount, currency, channel, status "
+            "FROM synthetic_transactions WHERE user_id = ? ORDER BY date DESC",
+            (student_id,)
+        ).fetchall()
+        txns = [dict(r) for r in rows]
+    
+    # Fallback to expenses table if no synthetic records
+    if not txns:
+        rows = conn.execute(
+            "SELECT id as transaction_id, timestamp as date, category as type, amount_cny as amount, "
+            "'CNY' as currency, 'Local Expense' as channel, 'Completed' as status "
+            "FROM expenses WHERE student_id = ? ORDER BY timestamp DESC",
+            (student_id,)
+        ).fetchall()
+        txns = [dict(r) for r in rows]
+    conn.close()
+
+    if not txns:
+        return {
+            "student_id": student_id,
+            "status": "INSUFFICIENT_DATA",
+            "message": "No transaction history found to perform statistical anomaly detection.",
+            "total_transactions_analyzed": 0,
+            "anomaly_count": 0,
+            "anomalies_detected": [],
+        }
+
+    # Group amounts by category/type
+    amounts_by_type = {}
+    for t in txns:
+        t_type = t["type"]
+        amounts_by_type.setdefault(t_type, []).append(float(t["amount"]))
+
+    anomalies = []
+    for t_type, vals in amounts_by_type.items():
+        if len(vals) < 3:
+            continue
+        q75, q25 = np.percentile(vals, [75, 25])
+        iqr = q75 - q25
+        cutoff = q75 + (threshold_iqr * iqr) if iqr > 0 else q75 * 1.5
+        
+        for t in txns:
+            if t["type"] == t_type and float(t["amount"]) > cutoff:
+                anomalies.append({
+                    "transaction_id": t["transaction_id"],
+                    "date": t["date"],
+                    "type": t_type,
+                    "amount": t["amount"],
+                    "currency": t["currency"],
+                    "channel": t["channel"],
+                    "iqr_upper_cutoff": round(cutoff, 2),
+                    "deviation_ratio": round(float(t["amount"]) / cutoff, 2),
+                    "reason": f"Amount {t['amount']} {t['currency']} exceeds category upper threshold ({cutoff:.2f})",
+                })
+
+    return {
+        "student_id": student_id,
+        "status": "ANOMALIES_FLAGGED" if anomalies else "CLEAN_NO_ANOMALIES",
+        "total_transactions_analyzed": len(txns),
+        "anomaly_count": len(anomalies),
+        "anomalies_detected": anomalies,
+        "detection_method": f"Tukey's IQR Outlier Filter ({threshold_iqr}x IQR)",
+    }
+
+
+def get_cohort_spending_benchmarks(study_country: str = "China") -> dict:
+    """
+    Calculate empirical cohort spending benchmarks from the 5,000 international student transactions.
+    Allows students to benchmark their monthly budgets against actual peers in their destination.
+    """
+    import numpy as np
+    conn = get_db()
+    has_synth = conn.execute(
+        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='synthetic_transactions'"
+    ).fetchone()[0]
+    if not has_synth:
+        conn.close()
+        return {"status": "NO_DATA", "total_transactions_sampled": 0}
+
+    rows = conn.execute(
+        "SELECT type, amount, currency, channel, status FROM synthetic_transactions "
+        "WHERE study_country = ?",
+        (study_country,)
+    ).fetchall()
+    conn.close()
+
+    if not rows:
+        return {
+            "study_country": study_country,
+            "status": "NO_DATA",
+            "total_transactions_sampled": 0,
+            "message": f"No peer transaction data found for destination country: {study_country}",
+        }
+
+    living_expenses = [r["amount"] for r in rows if r["type"] == "Living Expense"]
+    tuition_payments = [r["amount"] for r in rows if r["type"] == "Tuition Payment"]
+    
+    # Channel distribution
+    channels = {}
+    completed_count = 0
+    for r in rows:
+        ch = r["channel"]
+        channels[ch] = channels.get(ch, 0) + 1
+        if r["status"] == "Completed":
+            completed_count += 1
+
+    sorted_channels = sorted(channels.items(), key=lambda x: x[1], reverse=True)
+    top_channels = [ch for ch, _ in sorted_channels[:4]]
+
+    median_living = float(np.median(living_expenses)) if living_expenses else 0.0
+    median_tuition = float(np.median(tuition_payments)) if tuition_payments else 0.0
+    completion_rate = round((completed_count / len(rows)) * 100, 2) if rows else 0.0
+
+    return {
+        "study_country": study_country,
+        "total_transactions_sampled": len(rows),
+        "median_living_expense": round(median_living, 2),
+        "median_tuition_payment": round(median_tuition, 2),
+        "popular_channels": top_channels,
+        "completion_rate_pct": completion_rate,
+        "benchmark_source": "CrossPay International Student Synthetic Cohort (5,000 Transactions)",
+    }
+

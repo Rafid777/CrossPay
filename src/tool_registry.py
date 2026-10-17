@@ -1,12 +1,18 @@
-from src.tools.fx import get_exchange_rate, convert_amount
+from src.tools.fx import get_exchange_rate, convert_amount, get_pboc_central_parity_rate, get_fx_volatility_metrics
 from src.tools.remittance import compare_remittance_options, schedule_tuition_payment, commit_schedule_tuition_payment
 from src.tools.budget import (
     get_spending_summary, set_budget_category, add_expense,
     commit_set_budget_category, commit_add_expense
 )
 from src.tools.credit import get_credit_profile, simulate_credit_action
-from src.tools.compliance import check_aml_threshold, check_sanctioned_destination, check_aml_structuring
-from src.tools.analytics import get_fx_trend, get_spending_trend, get_credit_trend, get_worldbank_remittance
+from src.tools.compliance import (
+    check_aml_threshold, check_sanctioned_destination, check_aml_structuring,
+    check_safe_quota, verify_student_tuition_eligibility, get_cips_clearing_window
+)
+from src.tools.analytics import (
+    get_fx_trend, get_spending_trend, get_credit_trend, get_worldbank_remittance,
+    detect_spending_anomalies, get_cohort_spending_benchmarks
+)
 from src.logger import log_tool_call
 
 
@@ -196,6 +202,83 @@ TOOL_DECLARATIONS = [
             "required": ["country"],
         },
     },
+    {
+        "name": "get_pboc_central_parity_rate",
+        "description": "Get the official People's Bank of China (PBOC) Central Parity Rate (人民币汇率中间价), +/-2.0% daily trading band, buying rate, and selling rate for a currency against CNY.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "currency": {"type": "string", "description": "Foreign currency ISO code (default USD)"},
+            },
+        },
+    },
+    {
+        "name": "get_fx_volatility_metrics",
+        "description": "Calculate 30-day statistical FX volatility, Bollinger Bands (upper/lower), percentile ranking, and optimal timing recommendations for tuition remittance.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "from_currency": {"type": "string", "description": "Source currency code"},
+                "to_currency": {"type": "string", "description": "Target currency code (default CNY)"},
+            },
+            "required": ["from_currency"],
+        },
+    },
+    {
+        "name": "check_safe_quota",
+        "description": "Check China State Administration of Foreign Exchange (SAFE / 国家外汇管理局) $50,000 USD annual facilitation quota, YTD consumption, and genuine tuition exemption status.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "student_id": {"type": "string", "description": "Student account ID"},
+                "amount_usd": {"type": "number", "description": "Transfer amount in USD"},
+                "purpose": {"type": "string", "description": "Transfer purpose (e.g. 'tuition', 'living_expense')"},
+                "university_verified": {"type": "boolean", "description": "Whether admission letter and university invoice are attached"},
+            },
+            "required": ["student_id", "amount_usd"],
+        },
+    },
+    {
+        "name": "verify_student_tuition_eligibility",
+        "description": "Verify student visa type (X1/X2), university enrollment code, and CIPS direct university clearing eligibility.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "student_id": {"type": "string", "description": "Student account ID"},
+            },
+            "required": ["student_id"],
+        },
+    },
+    {
+        "name": "get_cips_clearing_window",
+        "description": "Get the operational status and next available settlement window for PBOC Cross-Border Interbank Payment System (CIPS / 人民币跨境支付系统).",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+        },
+    },
+    {
+        "name": "detect_spending_anomalies",
+        "description": "Run Tukey's IQR statistical anomaly detection over the student's transaction history to flag irregular spikes or potential fraud/overspending.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "student_id": {"type": "string", "description": "Student account ID"},
+                "threshold_iqr": {"type": "number", "description": "IQR multiplier threshold (default 1.5)"},
+            },
+            "required": ["student_id"],
+        },
+    },
+    {
+        "name": "get_cohort_spending_benchmarks",
+        "description": "Query population spending benchmarks (median living expenses, median tuition, popular payment channels) from the 5,000 international student dataset.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "study_country": {"type": "string", "description": "Host study country (e.g. 'China', 'Malaysia', 'Germany')"},
+            },
+        },
+    },
 ]
 
 # ---------------------------------------------------------------------------
@@ -217,6 +300,13 @@ _TOOL_MAP = {
     "get_spending_trend": get_spending_trend,
     "get_credit_trend": get_credit_trend,
     "get_worldbank_remittance": get_worldbank_remittance,
+    "get_pboc_central_parity_rate": get_pboc_central_parity_rate,
+    "get_fx_volatility_metrics": get_fx_volatility_metrics,
+    "check_safe_quota": check_safe_quota,
+    "verify_student_tuition_eligibility": verify_student_tuition_eligibility,
+    "get_cips_clearing_window": get_cips_clearing_window,
+    "detect_spending_anomalies": detect_spending_anomalies,
+    "get_cohort_spending_benchmarks": get_cohort_spending_benchmarks,
     # Commit variants (used after user confirms)
     "commit_set_budget_category": commit_set_budget_category,
     "commit_add_expense": commit_add_expense,

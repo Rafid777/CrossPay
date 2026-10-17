@@ -87,20 +87,26 @@ with st.sidebar:
     if lang == "zh":
         quick_actions = [
             ("💱 查询实时汇率", f"请查询最新的 {curr} 对人民币 CNY 汇率。"),
+            ("🏛️ 央行中间价牌价", "查询今天中国人民银行官方人民币汇率中间价与银行牌价。"),
             ("🏦 对比跨境汇款", f"我想汇款 $500 美元到中国交学费，请对比各服务商费用和到账速度。"),
             ("📅 规划学费缴纳", "根据当前汇率走势，帮我推荐最佳的学费缴纳窗口期。"),
-            ("📊 查看消费预算", "查看我本月的各项生活消费支出与预算使用情况。"),
+            ("🛡️ 外汇局额度自查", "查询我今年的国家外汇管理局5万美元便利化结汇额度。"),
+            ("🔍 消费异常排查", "帮我检测最近的资金流水中是否存在异常消费或突发大额支出。"),
+            ("🌐 同行消费基准", "对比来华留学生群体的月度平均生活费与学费基准。"),
             ("💳 提升中国征信", "作为国际留学生，我在中国有哪些安全合规建立良好征信的方法？"),
-            ("🏛️ 反洗钱合规自查", "请帮我检查单笔 $12,000 美元的汇款是否会触发外汇反洗钱合规申报？"),
+            ("⚖️ 反洗钱合规自查", "请帮我检查单笔 $12,000 美元的汇款是否会触发外汇反洗钱合规申报？"),
         ]
     else:
         quick_actions = [
             ("💱 Real-Time FX Rate", f"What is the current {curr} to CNY exchange rate?"),
+            ("🏛️ PBOC Parity Quote", "What is today's PBOC central parity rate for USD/CNY?"),
             ("🏦 Compare Remittance", f"Compare remittance options to send $500 USD to China for tuition."),
             ("📅 Schedule Tuition", "Help me find the optimal window to pay my tuition based on FX trends."),
-            ("📊 Spending Summary", "Show my spending summary and budget breakdown for this month."),
+            ("🛡️ SAFE Quota Check", "Check my SAFE annual facilitation quota for a $5,000 USD transfer."),
+            ("🔍 Anomaly Screening", "Check my transaction history for any abnormal spending spikes or anomalies."),
+            ("🌐 Cohort Benchmarks", "Show me international student cohort spending benchmarks for China."),
             ("💳 Credit Building Tips", "How can an international student build credit history in China?"),
-            ("🏛️ AML Compliance Check", "Check if a $12,000 USD transfer will trigger AML reporting requirements."),
+            ("⚖️ AML Compliance Check", "Check if a $12,000 USD transfer will trigger AML reporting requirements."),
         ]
 
     for label, prompt in quick_actions:

@@ -12,6 +12,7 @@ import re
 import os
 import joblib
 import numpy as np
+import pycountry
 from datetime import datetime, timezone
 from src.tool_registry import dispatch_tool
 from src.db import get_db

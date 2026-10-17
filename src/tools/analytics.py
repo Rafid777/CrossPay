@@ -193,7 +193,12 @@ def get_cohort_spending_benchmarks(study_country: str = "China") -> dict:
     ).fetchone()[0]
     if not has_synth:
         conn.close()
-        return {"status": "NO_DATA", "total_transactions_sampled": 0}
+        return {
+            "study_country": study_country,
+            "status": "NO_DATA",
+            "total_transactions_sampled": 0,
+            "message": "No synthetic transaction table found.",
+        }
 
     rows = conn.execute(
         "SELECT type, amount, currency, channel, status FROM synthetic_transactions "

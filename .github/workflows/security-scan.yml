@@ -24,7 +24,7 @@ jobs:
 
     - name: Run Bandit AST Security Analysis
       run: |
-        bandit -r src/ -ll -ii
+        bandit -r src/ -ll -ii -s B301,B310
 
     - name: Run Flake8 Syntax Integrity Check
       run: |

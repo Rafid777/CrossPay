@@ -73,6 +73,7 @@ def seed_mock_data(conn: sqlite3.Connection) -> None:
     )
     conn.commit()
     seed_rich_history(conn)
+    seed_synthetic_transactions(conn)
 
 
 def seed_rich_history(conn: sqlite3.Connection) -> None:
@@ -163,4 +164,27 @@ def seed_rich_history(conn: sqlite3.Connection) -> None:
                     (stu, month, score)
                 )
         conn.commit()
+
+
+def seed_synthetic_transactions(conn: sqlite3.Connection) -> None:
+    """Populate synthetic_transactions table from bundled CSV if missing or empty."""
+    import os
+    import pandas as pd
+
+    has_table = conn.execute(
+        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='synthetic_transactions'"
+    ).fetchone()[0]
+    if has_table:
+        count = conn.execute("SELECT COUNT(*) FROM synthetic_transactions").fetchone()[0]
+        if count > 0:
+            return
+
+    csv_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "data", "student_finance_transactions_5000.csv"
+    )
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+        df.to_sql("synthetic_transactions", conn, if_exists="replace", index=False)
+        conn.commit()
+
 

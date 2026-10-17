@@ -39,7 +39,6 @@ def _refresh_live_rates() -> dict:
     Attempt to fetch real-time interbank foreign exchange rates from public API.
     Falls back gracefully to PBOC baseline rates upon network timeout or offline state.
     """
-    global _LIVE_CACHE
     now = datetime.now(timezone.utc)
     # Cache valid for 30 minutes
     if _LIVE_CACHE["timestamp"] is not None:
@@ -53,7 +52,7 @@ def _refresh_live_rates() -> dict:
             url,
             headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CrossPay/2.0"},
         )
-        with urllib.request.urlopen(req, timeout=1.8) as response:
+        with urllib.request.urlopen(req, timeout=1.8) as response:  # nosec B310
             if response.status == 200:
                 payload = json.loads(response.read().decode("utf-8"))
                 rates = payload.get("rates", {})

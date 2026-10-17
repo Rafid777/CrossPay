@@ -4,12 +4,12 @@
 [![Topic C: Cross-Border & Student Finance](https://img.shields.io/badge/Topic-C%3A%20Cross--border%20Finance-059669?style=for-the-badge)]()
 [![Python 3.14](https://img.shields.io/badge/Python-3.14-3776AB?style=for-the-badge&logo=python)]()
 [![Gemini 3.8 Flash](https://img.shields.io/badge/Gemini-3.8%20Flash-EA4335?style=for-the-badge&logo=google)]()
-[![Tests Passing](https://img.shields.io/badge/Tests-57%2F57%20Passing-brightgreen?style=for-the-badge)]()
+[![Tests Passing](https://img.shields.io/badge/Tests-115%2F115%20Passing-brightgreen?style=for-the-badge)]()
 [![Bilingual EN/ZH](https://img.shields.io/badge/Language-English%20%7C%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-blue?style=for-the-badge)]()
 
 **CrossPay** is a competition-grade AI financial assistant designed for international students studying in China, built for the **WeBank International AI Finance Challenge (Topic C: Cross-Border & Student Finance)**.
 
-Powered by **Google Gemini 3.8 Flash** with a deterministic Python financial tool execution layer, CrossPay ensures **zero mathematical hallucination**, bank-grade two-step write confirmation, PBOC/SAFE regulatory compliance, and a proprietary **Financial Health Score™** with downloadable audit PDF reports.
+Powered by a **Dual Autonomous Intelligence Engine** (100% Offline Rule/Statistical Engine + Google Gemini 3.8 Flash fallback) with a deterministic Python financial tool execution layer, CrossPay ensures **zero mathematical hallucination**, bank-grade two-step write confirmation, PBOC/SAFE regulatory compliance, PBOC central parity quotes, SAFE Circular [2020] No.17 tuition quota exemptions, Tukey's IQR spending anomaly detection, and a proprietary **Financial Health Score™** with downloadable audit PDF reports.
 
 ---
 
@@ -18,29 +18,34 @@ Powered by **Google Gemini 3.8 Flash** with a deterministic Python financial too
 | Dimension | Standard Prototype | CrossPay v2.0 (Our Build) |
 |---|---|---|
 | **Design System** | Generic UI | Custom WeBank Blue & Gold (`#0A2463`, `#E8B84B`), glassmorphic metric cards, responsive layout |
-| **Architecture** | Single-page script | **4-Page Application**: Executive Dashboard · Bilingual AI Assistant · Deep Analytics · Security & Settings |
-| **Language Support** | English only | **Full Bilingual Support** (🇬🇧 English / 🇨🇳 简体中文) with one-click live toggle |
-| **Data Richness** | 3 static values | **6 months** of categorized transaction history, 30-day daily FX rate trends, credit trajectories |
-| **Analytics & Viz** | Plain text tables | **5 Interactive Plotly Visualizations**: spending donut, monthly trend, credit growth, FX monitor, remittance optimizer |
-| **Financial Intelligence** | Reactive Q&A | **Proactive Smart Alerts** (tuition countdowns, favorable FX opportunities, low balance, credit tips) |
+| **Architecture** | Single-page script | **6-Page Full Enterprise Application**: Executive Dashboard · Bilingual AI Assistant · Deep Analytics & Tukey IQR · Security & Settings · Global Macro Intelligence · AI Model Studio |
+| **Language Support** | English only | **Full Bilingual Support** (🇬🇧 English / 🇨🇳 简体中文) with one-click live toggle & bilingual entity parsing |
+| **Data Richness** | 3 static values | **5,000 Realistic Transactions** + 200 users, 6 months categorized history, 30-day daily FX rate trends, credit trajectories |
+| **Analytics & Viz** | Plain text tables | **6+ Interactive Plotly Visualizations**: spending donut, monthly trend, credit growth, FX monitor, Tukey anomaly screener, remittance optimizer |
+| **Central Bank & RegTech** | None | **PBOC Central Parity Rates** (中间价 $\pm 2\%$ band), **SAFE $50k Quota Exemption** (Circular [2020] No.17), **CIPS Clearing Windows** |
+| **Financial Intelligence** | Reactive Q&A | **Proactive Smart Alerts** (tuition countdowns, favorable FX opportunities, low balance, credit tips, spending anomalies) |
 | **Proprietary Metric** | None | **CrossPay Financial Health Score™** (0–100 composite index: credit 30%, discipline 25%, reserve 25%, tuition 20%) |
 | **Formal Deliverables** | Screen captures | **One-Click Downloadable PDF Financial Audit Report** (ReportLab, branded, 3-page printable report) |
 | **Compliance & Trust** | Generic notes | **3-Tier Permission Security Model**, $10,000 USD AML threshold screening, 10-country sanctions filter, PII masking |
+| **Autonomy & Reliability** | Fails without API key | **100% Autonomous Offline Execution** (zero API key required for full core functionality, sub-15ms latency) |
 
 ---
 
-## 🧭 Four-Page System Architecture
+## 🧭 Six-Page System Architecture
 
 ```
 Project China/
 ├── app.py                      # Executive Portal & Launchpad
 ├── pages/
 │   ├── 1_📊_Dashboard.py       # Financial Health Score, KPI cards, smart alerts, PDF export
-│   ├── 2_🤖_AI_Assistant.py    # Bilingual Gemini 3.8 Flash chat with 2-step confirmation
-│   ├── 3_📈_Analytics.py       # 5 interactive Plotly visualizations & cost optimizer
-│   └── 4_⚙️_Settings.py        # Student profiles, PII masking verification, AML/Sanctions baselines
+│   ├── 2_🤖_AI_Assistant.py    # Bilingual Autonomous/Gemini AI chat with 2-step confirmation
+│   ├── 3_📈_Analytics.py       # 6 interactive Plotly charts, Tukey IQR anomaly detection & cohort benchmarks
+│   ├── 4_⚙️_Settings.py        # Student profiles, PII masking verification, AML/Sanctions baselines
+│   ├── 5_🌍_Global_Intelligence.py # 5,000 transaction global macro data, World Bank corridors, live API exchange rates
+│   └── 6_🧪_AI_Model_Studio.py # AI dual-engine inference studio, latency benchmarks & test matrix
 ├── src/
 │   ├── agent.py                # Stateful CrossPayAgent with tool loop & confirmation gate
+│   ├── autonomous_engine.py    # 100% offline regex & rule-based bilingual NLU engine (<15ms latency)
 │   ├── health_score.py         # Proprietary Financial Health Score™ multi-factor engine
 │   ├── alerts.py               # Proactive financial risk & opportunity alert generator
 │   ├── pdf_report.py           # ReportLab audit report generation (returns valid PDF bytes)
@@ -50,18 +55,19 @@ Project China/
 │   ├── db.py                   # SQLite database (accounts, expenses, budgets, fx, alerts, credit)
 │   ├── mock_data.py            # 3 student accounts with 6 months rich history
 │   ├── logger.py               # Immutable JSONL audit logger with PII masking
-│   ├── tool_registry.py        # 13 Gemini function declarations & dispatcher
+│   ├── tool_registry.py        # 20 Gemini & Autonomous function declarations & dispatcher
 │   └── tools/
-│       ├── fx.py               # FX rates & conversion (deterministic)
+│       ├── fx.py               # FX rates, PBOC central parity, volatility metrics, live API fallback
 │       ├── remittance.py       # Provider benchmarking (WeBank Direct, Wise, UnionPay, SWIFT)
 │       ├── budget.py           # Multi-category spending & 2-step confirmed expense recording
 │       ├── credit.py           # Credit scoring, milestones, & action simulator
-│       ├── compliance.py       # AML threshold ($10,000 USD), sanctions list, PII regex
-│       └── analytics.py        # Historical FX, spending trends, credit progression
-├── tests/                      # 57 automated pytest tests (100% passing)
+│       ├── compliance.py       # AML threshold ($10,000 USD), SAFE quota exemption, CIPS windows, sanctions list, PII regex
+│       └── analytics.py        # Historical FX, spending trends, Tukey IQR anomaly detection, cohort benchmarks
+├── tests/                      # 115 automated pytest tests across 11 test suites (100% passing)
 ├── docs/                       # Formal competition deliverables (01, 02, 05, 06)
 ├── assets/style.css            # Fintech design styling
 └── scripts/
+    ├── generate_5000_transactions.py  # 5,000 transaction statistical dataset generator
     └── generate_execution_evidence.py # Deliverable 06 evidence generator
 ```
 
@@ -120,7 +126,7 @@ streamlit run app.py
 ```bash
 python -m pytest tests/ -v
 ```
-*Expected: 57 passed in ~11 seconds.*
+*Expected: 115 passed across 11 test suites in ~16 seconds.*
 
 ### 4. Generate Audit Execution Evidence (Deliverable 06)
 ```bash

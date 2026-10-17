@@ -13,6 +13,10 @@ from src.tools.analytics import (
     get_fx_trend, get_spending_trend, get_credit_trend, get_worldbank_remittance,
     detect_spending_anomalies, get_cohort_spending_benchmarks
 )
+from src.tools.fraud import (
+    screen_tuition_proxy_scam, screen_peer_exchange_risk,
+    evaluate_transaction_fraud_risk, check_telecom_fraud_keywords
+)
 from src.logger import log_tool_call
 
 
@@ -279,6 +283,61 @@ TOOL_DECLARATIONS = [
             },
         },
     },
+    {
+        "name": "screen_tuition_proxy_scam",
+        "description": "Screen tuition payment proposals for proxy payment scams, unauthorized discounts, and stolen credit card fraud.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "tuition_amount_cny": {"type": "number", "description": "Official university tuition amount in CNY"},
+                "quoted_cost_cny": {"type": "number", "description": "Amount requested by payment agent in CNY"},
+                "payment_channel": {"type": "string", "description": "Payment channel (e.g. 'WeChat Agent', 'University Portal')"},
+                "is_official_portal": {"type": "boolean", "description": "True if paying directly on university portal"},
+            },
+            "required": ["tuition_amount_cny", "quoted_cost_cny", "payment_channel", "is_official_portal"],
+        },
+    },
+    {
+        "name": "screen_peer_exchange_risk",
+        "description": "Screen currency exchange channels against PBOC 'Card Break Action' (断卡行动) and illegal underground FX.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "amount": {"type": "number", "description": "Exchange amount"},
+                "currency": {"type": "string", "description": "Currency code (e.g. CNY, USD, BDT)"},
+                "counterparty_type": {"type": "string", "description": "Type of counterparty (e.g. 'Licensed Bank', 'Private Individual')"},
+                "platform": {"type": "string", "description": "Platform used (e.g. 'WeBank', 'WeChat Group', 'Telegram')"},
+            },
+            "required": ["amount", "currency", "counterparty_type", "platform"],
+        },
+    },
+    {
+        "name": "evaluate_transaction_fraud_risk",
+        "description": "Evaluate composite multi-factor transaction fraud risk index (0-100) based on velocity, nocturnal off-hours, and channel.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "student_id": {"type": "string", "description": "Student account ID"},
+                "amount_cny": {"type": "number", "description": "Transaction amount in CNY"},
+                "channel": {"type": "string", "description": "Transaction channel"},
+                "recipient_account": {"type": "string", "description": "Recipient account or identifier"},
+                "hour_of_day": {"type": "integer", "description": "Hour of transaction in 24-hour CST (0-23)"},
+                "recent_txn_count_1h": {"type": "integer", "description": "Number of transactions within the past 1 hour"},
+            },
+            "required": ["student_id", "amount_cny", "channel", "recipient_account", "hour_of_day", "recent_txn_count_1h"],
+        },
+    },
+    {
+        "name": "check_telecom_fraud_keywords",
+        "description": "Scan text for PRC Anti-Telecom and Online Fraud keywords (safe accounts, public security impersonation, money mule card leasing).",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "text": {"type": "string", "description": "User message or message to analyze for fraud indicators"},
+            },
+            "required": ["text"],
+        },
+    },
 ]
 
 # ---------------------------------------------------------------------------
@@ -307,6 +366,10 @@ _TOOL_MAP = {
     "get_cips_clearing_window": get_cips_clearing_window,
     "detect_spending_anomalies": detect_spending_anomalies,
     "get_cohort_spending_benchmarks": get_cohort_spending_benchmarks,
+    "screen_tuition_proxy_scam": screen_tuition_proxy_scam,
+    "screen_peer_exchange_risk": screen_peer_exchange_risk,
+    "evaluate_transaction_fraud_risk": evaluate_transaction_fraud_risk,
+    "check_telecom_fraud_keywords": check_telecom_fraud_keywords,
     # Commit variants (used after user confirms)
     "commit_set_budget_category": commit_set_budget_category,
     "commit_add_expense": commit_add_expense,

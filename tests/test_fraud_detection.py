@@ -170,3 +170,38 @@ def test_check_telecom_fraud_keywords_other_patterns():
     r2 = check_telecom_fraud_keywords("兼职高薪，提供银行卡跑分租卡")
     assert r2["fraud_pattern_detected"] is True
     assert "跑分" in r2["pattern_type"] or "租卡" in r2["pattern_type"]
+
+
+def test_dispatch_tool_screen_tuition_proxy_scam():
+    from src.tool_registry import dispatch_tool
+    result = dispatch_tool("screen_tuition_proxy_scam", {
+        "tuition_amount_cny": 10000.0,
+        "quoted_cost_cny": 7500.0,
+        "payment_channel": "WeChat Agent",
+        "is_official_portal": False
+    })
+    assert "scam_detected" in result
+    assert result["scam_detected"] is True
+
+
+def test_dispatch_tool_evaluate_fraud_risk():
+    from src.tool_registry import dispatch_tool
+    result = dispatch_tool("evaluate_transaction_fraud_risk", {
+        "student_id": "STU001",
+        "amount_cny": 12000.0,
+        "channel": "P2P",
+        "recipient_account": "6222000011112222",
+        "hour_of_day": 3,
+        "recent_txn_count_1h": 5
+    })
+    assert "risk_score" in result
+    assert result["risk_score"] > 60
+
+
+def test_fraud_tools_in_tool_declarations():
+    from src.tool_registry import TOOL_DECLARATIONS
+    names = [d["name"] for d in TOOL_DECLARATIONS]
+    assert "screen_tuition_proxy_scam" in names
+    assert "screen_peer_exchange_risk" in names
+    assert "evaluate_transaction_fraud_risk" in names
+    assert "check_telecom_fraud_keywords" in names

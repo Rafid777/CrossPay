@@ -1,9 +1,36 @@
+# Environment & secrets
 .env
+.env.local
+
+# Databases & local data
 data/crosspay.db
 logs/*.jsonl
+*.log
+
+# Python cache & test artifacts
 __pycache__/
 .pytest_cache/
 *.pyc
+*.pyo
 .venv/
+env/
+venv/
 htmlcov/
 .coverage
+*.egg-info/
+dist/
+build/
+
+# Operating system artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Internal agent working directories
+.superpowers/

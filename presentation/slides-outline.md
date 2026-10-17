@@ -45,9 +45,10 @@
 - Stateful multi-turn context via `previous_interaction_id`
 
 ## Slide 8: Technical Implementation (30 sec)
-- 50 tests, 85%+ coverage on tool modules
+- 144 automated tests across 13 test suites (100% passing)
+- 24 deterministic tools across FX, remittance, budget, credit, compliance, analytics & anti-fraud
 - TDD throughout: tests written before implementation
-- Full execution audit trail (Deliverable 06)
+- Full execution audit trail (Deliverable 06) and 10-page Master Operational Manual
 
 ## Slide 9: Roadmap
 - Live FX API integration (Wise/TransferWise API)

@@ -69,8 +69,12 @@ Project China/
 ├── docs/                       # Formal competition deliverables (01, 02, 05, 06)
 ├── assets/style.css            # Fintech design styling
 └── scripts/
-    ├── generate_5000_transactions.py  # 5,000 transaction statistical dataset generator
-    └── generate_execution_evidence.py # Deliverable 06 evidence generator
+    ├── generate_synthetic_transactions.py # 5,000 transaction statistical dataset generator
+    ├── generate_execution_evidence.py     # Deliverable 06 evidence generator
+    ├── generate_master_manual_pdf.py      # Master Operational Manual PDF generator
+    ├── train_production_model.py          # AI Studio offline model training pipeline
+    ├── train_autonomous_agent.py          # NLU autonomous agent benchmark trainer
+    └── verify_pdf.py                      # PDF decompression and layout verification
 ```
 
 ---
@@ -128,13 +132,13 @@ streamlit run app.py
 ```bash
 python -m pytest tests/ -v
 ```
-*Expected: 135 passed across 12 test suites in ~17 seconds.*
+*Expected: 144 passed across 13 test suites in ~18 seconds.*
 
 ### 4. Generate Audit Execution Evidence (Deliverable 06)
 ```bash
 python scripts/generate_execution_evidence.py
 ```
-*Executes all 11 tool scenarios and populates `logs/execution_log.jsonl`.*
+*Executes all tool scenarios and populates `logs/execution_log.jsonl`.*
 
 ---
 
@@ -152,6 +156,7 @@ python scripts/generate_execution_evidence.py
 
 | Deliverable ID | Requirement | Project File / Location | Status |
 |---|---|---|---|
+| **Deliverable 00** | Master Operational Manual (PDF & MD) | [`docs/CrossPay_Master_Operational_Manual.pdf`](docs/CrossPay_Master_Operational_Manual.pdf) · [`docs/master-operational-manual.md`](docs/master-operational-manual.md) | ✅ Complete |
 | **Deliverable 01** | Technical Documentation | [`docs/technical-documentation.md`](docs/technical-documentation.md) | ✅ Complete |
 | **Deliverable 02** | Presentation Deck / Outline | [`presentation/slides-outline.md`](presentation/slides-outline.md) | ✅ Complete |
 | **Deliverable 03** | Demo Video Script & Walkthrough | `streamlit run app.py` (Ready to record) | ✅ Ready |

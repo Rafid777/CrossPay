@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from typing import List, Dict, Any
 
 _PROVIDERS = [
     {"name": "SWIFT Bank Transfer", "fee_usd": 25.0, "fx_markup_pct": 0.025, "delivery_days": 3},

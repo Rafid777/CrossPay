@@ -32,6 +32,22 @@ def get_ml_pipeline():
                     break
                 except Exception:
                     continue
+        if _ML_PIPELINE is None:
+            try:
+                from sklearn.pipeline import Pipeline
+                from sklearn.feature_extraction.text import TfidfVectorizer
+                from sklearn.linear_model import LogisticRegression
+                from scripts.train_autonomous_agent import DATASET
+                X = [t for _, t in DATASET]
+                y = [i for i, _ in DATASET]
+                pipe = Pipeline([
+                    ("tfidf", TfidfVectorizer(ngram_range=(1, 2))),
+                    ("clf", LogisticRegression(max_iter=200))
+                ])
+                pipe.fit(X, y)
+                _ML_PIPELINE = pipe
+            except Exception:
+                pass
     return _ML_PIPELINE
 
 

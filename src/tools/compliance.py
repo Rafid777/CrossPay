@@ -64,14 +64,52 @@ def check_aml_structuring(student_id: str, new_amount_usd: float, window_days: i
     }
 
 
+import pycountry
+
+SANCTIONED_NAMES = {
+    "iran": "IR", "north korea": "KP", "dprk": "KP", "syria": "SY",
+    "cuba": "CU", "sudan": "SD", "myanmar": "MM", "burma": "MM",
+    "belarus": "BY", "venezuela": "VE", "zimbabwe": "ZW", "russia": "RU",
+    "russian federation": "RU",
+    "伊朗": "IR", "朝鲜": "KP", "叙利亚": "SY", "古巴": "CU",
+    "苏丹": "SD", "缅甸": "MM", "白俄罗斯": "BY", "委内瑞拉": "VE",
+    "津巴布韦": "ZW", "俄罗斯": "RU",
+}
+
+
+def resolve_country_alpha2(country_input: str) -> tuple[str, str]:
+    """Resolve country code or name to canonical ISO alpha-2 and full name."""
+    cleaned = country_input.strip()
+    cl = cleaned.lower()
+    if cl in SANCTIONED_NAMES:
+        code = SANCTIONED_NAMES[cl]
+        c = pycountry.countries.get(alpha_2=code)
+        return code, c.name if c else cleaned.capitalize()
+    if len(cleaned) == 2:
+        c = pycountry.countries.get(alpha_2=cleaned.upper())
+        return cleaned.upper(), c.name if c else cleaned.upper()
+    try:
+        c = pycountry.countries.get(name=cleaned)
+        if c:
+            return c.alpha_2, c.name
+        m = pycountry.countries.search_fuzzy(cleaned)
+        if m:
+            return m[0].alpha_2, m[0].name
+    except Exception:
+        pass
+    return cleaned.upper(), cleaned
+
+
 def check_sanctioned_destination(country_code: str) -> dict:
-    """Check if a destination country is on the sanctions list."""
-    blocked = country_code.upper() in SANCTIONED_COUNTRIES
+    """Check if a destination country is on the international sanctions list."""
+    code, full_name = resolve_country_alpha2(country_code)
+    blocked = code in SANCTIONED_COUNTRIES
     return {
         "blocked": blocked,
-        "country": country_code.upper(),
+        "country": code,
+        "country_name": full_name,
         "reason": (
-            f"Transfers to {country_code.upper()} are blocked under international sanctions regulations."
+            f"Transfers to {full_name} ({code}) are blocked under international sanctions regulations (OFAC / UN / SAFE)."
             if blocked else None
         ),
     }

@@ -1,5 +1,5 @@
 from src.tools.fx import get_exchange_rate, convert_amount
-from src.tools.remittance import compare_remittance_options, schedule_tuition_payment
+from src.tools.remittance import compare_remittance_options, schedule_tuition_payment, commit_schedule_tuition_payment
 from src.tools.budget import (
     get_spending_summary, set_budget_category, add_expense,
     commit_set_budget_category, commit_add_expense
@@ -220,6 +220,7 @@ _TOOL_MAP = {
     # Commit variants (used after user confirms)
     "commit_set_budget_category": commit_set_budget_category,
     "commit_add_expense": commit_add_expense,
+    "commit_schedule_tuition_payment": commit_schedule_tuition_payment,
 }
 
 

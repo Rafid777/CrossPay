@@ -1,6 +1,6 @@
 import pytest
 from src.tools.fx import get_exchange_rate, convert_amount
-from src.tools.remittance import compare_remittance_options, schedule_tuition_payment
+from src.tools.remittance import compare_remittance_options, schedule_tuition_payment, commit_schedule_tuition_payment
 from src.tools.budget import get_spending_summary, set_budget_category, add_expense, commit_add_expense
 from src.tools.credit import get_credit_profile, simulate_credit_action
 from src.tools.compliance import check_aml_threshold, check_sanctioned_destination, mask_pii, check_aml_structuring
@@ -209,4 +209,57 @@ def test_aml_structuring_detection():
     res_large = check_aml_structuring("STU001", 12000.0, window_days=7)
     assert res_large["flagged"] is True
     assert res_large["risk_level"] == "HIGH"
+
+
+def test_commit_schedule_tuition_payment():
+    from src.db import get_db
+    res = commit_schedule_tuition_payment("STU001", 8500.0, "2026-11-20")
+    assert res["scheduled"] is True
+    assert res["status"] == "CONFIRMED_AND_RESERVED"
+    assert res["amount_cny"] == 8500.0
+    
+    conn = get_db()
+    row = conn.execute(
+        "SELECT * FROM alerts WHERE student_id = ? AND alert_type = 'tuition_scheduled' ORDER BY id DESC LIMIT 1",
+        ("STU001",)
+    ).fetchone()
+    conn.close()
+    assert row is not None
+    assert "8,500.00" in row["message"]
+
+
+def test_convert_amount_same_currency_zero_fee():
+    res = convert_amount(500.0, "CNY", "CNY")
+    assert res["original"] == 500.0
+    assert res["converted"] == 500.0
+    assert res["rate"] == 1.0
+    assert res["fee_usd"] == 0.0
+
+
+def test_sanctioned_destination_handles_names_and_safe_countries():
+    # Full name safe
+    res_de = check_sanctioned_destination("Germany")
+    assert res_de["blocked"] is False
+    assert res_de["country"] == "DE"
+    
+    res_my = check_sanctioned_destination("Malaysia")
+    assert res_my["blocked"] is False
+    assert res_my["country"] == "MY"
+    
+    # Full name sanctioned
+    res_ir = check_sanctioned_destination("Iran")
+    assert res_ir["blocked"] is True
+    assert res_ir["country"] == "IR"
+    
+    res_ru = check_sanctioned_destination("Russia")
+    assert res_ru["blocked"] is True
+    assert res_ru["country"] == "RU"
+
+
+def test_fx_expanded_currencies():
+    for curr in ["CAD", "AUD", "MYR", "SGD", "AED", "SAR", "THB"]:
+        res = get_exchange_rate(curr, "CNY")
+        assert res["rate"] > 0
+        assert res["from_currency"] == curr
+        assert res["to_currency"] == "CNY"
 

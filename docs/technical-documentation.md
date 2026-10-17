@@ -153,14 +153,14 @@ CrossPay embeds an interactive model evaluation and operations suite directly in
 
 ## 7. Testing & Quality Assurance
 
-- **Total Automated Tests**: **88**
+- **Total Automated Tests**: **96**
 - **Test Command**: `python -m pytest tests/ -v`
-- **Pass Rate**: **100% (88/88)**
+- **Pass Rate**: **100% (96/96)**
 - **Test Coverage**:
   - `test_agent.py` (10 tests): Multi-turn stateful memory, tool calling, 2-step confirmation handling, API fallback
-  - `test_tools.py` (31 tests): Deterministic mathematics, FX conversions, remittance ordering, single & multi-day AML structuring flags, negative amount exploit guards, PII masking
+  - `test_tools.py` (35 tests): Deterministic mathematics, FX conversions with zero-fee same-currency logic, expanded international student currencies, remittance ordering, single & multi-day AML structuring flags, negative amount exploit guards, PII masking, tuition commitment alerts, and PyCountry sanctions screening
   - `test_logger.py` (13 tests): Audit logging, JSONL schema, PII redaction, tool dispatching
   - `test_db.py` (4 tests): SQLite creation, constraint verification, mock seeding, and strict foreign key integrity (`PRAGMA foreign_keys = ON`)
   - `test_analytics.py` (11 tests): Financial Health Score calculation, alerts engine, analytics querying, World Bank dataset integration, ReportLab PDF generation
-  - `test_autonomous_engine.py` (12 tests): 100% offline autonomous inference, intent prediction, entity extraction, bilingual EN/ZH response generation, confirmation workflows
+  - `test_autonomous_engine.py` (16 tests): 100% offline autonomous inference, intent prediction, entity extraction, bilingual EN/ZH response generation, tuition confirmation workflows, dynamic World Bank country detection, and sanctions verification
   - `test_production_robustness.py` (7 tests): Adversarial prompt injection resistance, out-of-domain rejection, boundary AML stress testing, complete 10-country sanctions matrix, sub-15ms inference latency SLA, unicode fuzzing, and multi-turn state integrity

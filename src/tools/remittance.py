@@ -49,3 +49,33 @@ def schedule_tuition_payment(student_id: str, amount_cny: float, due_date: str) 
         "confirmation_required": True,
         "note": "FX rates are typically 0.3% better at the start of the trading week.",
     }
+
+
+def commit_schedule_tuition_payment(student_id: str, amount_cny: float, due_date: str) -> dict:
+    """Actually commits and reserves the tuition payment schedule after user confirmation."""
+    from src.db import get_db
+    conn = get_db()
+    timestamp = datetime.now(timezone.utc).isoformat()
+    conn.execute(
+        "INSERT INTO alerts (student_id, alert_type, message, message_zh, severity, is_read, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (
+            student_id,
+            "tuition_scheduled",
+            f"Tuition payment of ¥{amount_cny:,.2f} CNY confirmed & scheduled for {due_date}. Auto-clearing active.",
+            f"学费 ¥{amount_cny:,.2f} CNY 已确认并预约于 {due_date} 自动结汇清算。",
+            "info",
+            0,
+            timestamp,
+        )
+    )
+    conn.commit()
+    conn.close()
+    return {
+        "scheduled": True,
+        "student_id": student_id,
+        "amount_cny": amount_cny,
+        "due_date": due_date,
+        "status": "CONFIRMED_AND_RESERVED",
+        "message": f"Tuition payment of ¥{amount_cny:,.2f} CNY has been confirmed and scheduled.",
+    }

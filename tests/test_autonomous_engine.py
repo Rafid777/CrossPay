@@ -100,3 +100,36 @@ def test_agent_runs_100_percent_offline_without_api_key():
     assert "Remittance" in resp1 or "WeBank" in resp1
     resp2 = agent.chat("How to build credit in China?")
     assert "Credit" in resp2 or "score" in resp2
+
+
+def test_autonomous_chat_sanctions_germany_not_blocked():
+    agent = CrossPayAgent("STU001", api_key="", engine_mode="autonomous")
+    resp = agent.chat("Is it safe to transfer money to Germany?")
+    assert "Blocked" not in resp and "blocked" not in resp.lower()
+    assert "Compliant" in resp or "Allowed" in resp or "Germany" in resp
+
+
+def test_autonomous_chat_sanctions_iran_blocked():
+    agent = CrossPayAgent("STU001", api_key="", engine_mode="autonomous")
+    resp = agent.chat("Can I transfer money to Iran?")
+    assert "Blocked" in resp or "blocked" in resp.lower()
+    assert "sanction" in resp.lower() or "IR" in resp
+
+
+def test_autonomous_chat_worldbank_dynamic_country():
+    agent = CrossPayAgent("STU001", api_key="", engine_mode="autonomous")
+    resp = agent.chat("What are the World Bank remittance trends for Malaysia?")
+    assert "Malaysia" in resp or "World Bank" in resp
+    assert "Inflow" in resp or "Outflow" in resp or "USD" in resp
+
+
+def test_autonomous_chat_tuition_schedule_and_confirm():
+    agent = CrossPayAgent("STU001", api_key="", engine_mode="autonomous")
+    resp = agent.chat("Help me schedule my tuition payment of 8000 CNY")
+    assert agent.pending_action is not None
+    assert agent.pending_action["tool"] == "schedule_tuition_payment"
+    assert "Tuition" in resp or "tuition" in resp
+    
+    confirm_resp = agent.confirm_action()
+    assert agent.pending_action is None
+    assert "Tuition payment of ¥8,000.00 CNY has been confirmed" in confirm_resp or "CONFIRMED_AND_RESERVED" in confirm_resp

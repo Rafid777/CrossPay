@@ -92,7 +92,11 @@ class CrossPayAgent:
         tool = self.pending_action["tool"]
         args = self.pending_action["args"]
         self.pending_action = None
-        commit_map = {"add_expense": "commit_add_expense", "set_budget_category": "commit_set_budget_category"}
+        commit_map = {
+            "add_expense": "commit_add_expense",
+            "set_budget_category": "commit_set_budget_category",
+            "schedule_tuition_payment": "commit_schedule_tuition_payment",
+        }
         commit_tool = commit_map.get(tool, tool)
         result = dispatch_tool(commit_tool, args)
         return f"\u2705 Done! Action completed.\n\nDetails: {result}"

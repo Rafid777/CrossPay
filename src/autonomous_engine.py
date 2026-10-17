@@ -44,23 +44,49 @@ CURRENCY_MAP = {
     "eur": "EUR", "euro": "EUR", "欧元": "EUR",
     "gbp": "GBP", "pound": "GBP", "英镑": "GBP",
     "jpy": "JPY", "yen": "JPY", "日元": "JPY",
-    "cad": "CAD", "aud": "AUD", "myr": "MYR",
+    "cad": "CAD", "加元": "CAD",
+    "aud": "AUD", "澳元": "AUD",
+    "myr": "MYR", "林吉特": "MYR", "马币": "MYR",
+    "sgd": "SGD", "新币": "SGD", "新加坡元": "SGD",
+    "aed": "AED", "迪拉姆": "AED",
+    "sar": "SAR", "里亚尔": "SAR",
+    "thb": "THB", "泰铢": "THB",
 }
 
 COUNTRY_MAP = {
+    # 10 Sanctioned Countries
+    "iran": "IR", "ir": "IR", "伊朗": "IR",
+    "north korea": "KP", "kp": "KP", "dprk": "KP", "朝鲜": "KP",
+    "syria": "SY", "sy": "SY", "叙利亚": "SY",
+    "cuba": "CU", "cu": "CU", "古巴": "CU",
+    "sudan": "SD", "sd": "SD", "苏丹": "SD",
+    "myanmar": "MM", "mm": "MM", "burma": "MM", "缅甸": "MM",
+    "belarus": "BY", "by": "BY", "白俄罗斯": "BY",
+    "venezuela": "VE", "ve": "VE", "委内瑞拉": "VE",
+    "zimbabwe": "ZW", "zw": "ZW", "津巴布韦": "ZW",
+    "russia": "RU", "ru": "RU", "russian federation": "RU", "俄罗斯": "RU",
+    # Major Global Corridors & Study Destinations
     "china": "CN", "cn": "CN", "中国": "CN",
     "bangladesh": "BD", "bd": "BD", "孟加拉国": "BD", "孟加拉": "BD",
     "pakistan": "PK", "pk": "PK", "巴基斯坦": "PK",
     "nigeria": "NG", "ng": "NG", "尼日利亚": "NG",
-    "iran": "IR", "ir": "IR", "伊朗": "IR",
-    "north korea": "KP", "kp": "KP", "朝鲜": "KP",
-    "syria": "SY", "叙利亚": "SY",
-    "cuba": "CU", "古巴": "CU",
-    "sudan": "SD", "苏丹": "SD",
-    "myanmar": "MM", "缅甸": "MM",
-    "russia": "RU", "俄罗斯": "RU",
+    "germany": "DE", "de": "DE", "德国": "DE",
+    "malaysia": "MY", "my": "MY", "马来西亚": "MY",
+    "japan": "JP", "jp": "JP", "日本": "JP",
+    "canada": "CA", "ca": "CA", "加拿大": "CA",
+    "australia": "AU", "au": "AU", "澳大利亚": "AU", "澳洲": "AU",
     "united states": "US", "usa": "US", "us": "US", "美国": "US",
     "united kingdom": "GB", "uk": "GB", "英国": "GB",
+    "singapore": "SG", "sg": "SG", "新加坡": "SG",
+    "south korea": "KR", "korea": "KR", "kr": "KR", "韩国": "KR",
+    "india": "IN", "in": "IN", "印度": "IN",
+    "france": "FR", "fr": "FR", "法国": "FR",
+    "italy": "IT", "it": "IT", "意大利": "IT",
+    "thailand": "TH", "th": "TH", "泰国": "TH",
+    "indonesia": "ID", "id": "ID", "印尼": "ID",
+    "vietnam": "VN", "vn": "VN", "越南": "VN",
+    "saudi arabia": "SA", "saudi": "SA", "sa": "SA", "沙特": "SA",
+    "uae": "AE", "united arab emirates": "AE", "ae": "AE", "阿联酋": "AE",
 }
 
 CATEGORY_MAP = {
@@ -598,14 +624,37 @@ class AutonomousFinEngine:
 
         # ── 11. check_sanctioned_destination ──────────────────────────────────
         if intent == "check_sanctioned_destination":
-            c_code = entities.get("country_code", "IR")
+            c_code = entities.get("country_code")
+            if not c_code:
+                text_clean = re.sub(r'[^\w\s]', ' ', text)
+                for w in text_clean.split():
+                    if len(w) >= 2:
+                        match_code = COUNTRY_MAP.get(w.lower())
+                        if match_code:
+                            c_code = match_code
+                            break
+                        try:
+                            m = pycountry.countries.search_fuzzy(w)
+                            if m:
+                                c_code = m[0].alpha_2
+                                break
+                        except Exception:
+                            pass
+
+            if not c_code:
+                if lang == "zh":
+                    return "请指定您想要查询合规状态的国家或地区名称（例如：德国、伊朗、孟加拉国、英国、俄罗斯等），我将为您执行合规风控审查。", None
+                else:
+                    return "Please specify the destination country you wish to screen (e.g. Germany, Iran, Bangladesh, UK, Russia, etc.).", None
+
             res = dispatch_tool("check_sanctioned_destination", {"country_code": c_code})
+            country_display = f"{res.get('country_name', res['country'])} ({res['country']})"
 
             if lang == "zh":
                 status = "🔴 属于受限/受制裁国家 (Blocked)" if res["blocked"] else "🟢 属于正常合规跨境通道 (Allowed)"
                 resp = (
                     f"### 🌍 国际金融制裁与外汇管辖审查 (Sanctions Screening)\n\n"
-                    f"- **目标国家代码**: `{res['country']}`\n"
+                    f"- **目标国家代码**: `{country_display}`\n"
                     f"- **合规审核结果**: **{status}**\n\n"
                     f"{'⛔ **受限原因**: ' + res['reason'] if res['blocked'] else '✅ 该目的地国家支持合规双向跨境划转，受中国人民银行及国际金融反洗钱保护。'}"
                 )
@@ -613,7 +662,7 @@ class AutonomousFinEngine:
                 status = "🔴 Destination Blocked by Sanctions" if res["blocked"] else "🟢 Destination Compliant and Allowed"
                 resp = (
                     f"### 🌍 International Sanctions Screening\n\n"
-                    f"- **Destination Country**: `{res['country']}`\n"
+                    f"- **Destination Country**: `{country_display}`\n"
                     f"- **Result**: **{status}**\n\n"
                     f"{'⛔ **Reason**: ' + res['reason'] if res['blocked'] else '✅ Transfer permitted under international banking compliance guidelines.'}"
                 )
@@ -688,17 +737,35 @@ class AutonomousFinEngine:
 
         # ── 15. get_worldbank_remittance ──────────────────────────────────────
         if intent == "get_worldbank_remittance":
-            country = entities.get("country_name", "Bangladesh")
-            # If user mentioned Pakistan/Nigeria
             text_l = text.lower()
-            if "pakistan" in text_l or "巴基斯坦" in text_l:
-                country = "Pakistan"
-            elif "nigeria" in text_l or "尼日利亚" in text_l:
-                country = "Nigeria"
-            elif "china" in text_l or "中国" in text_l:
-                country = "China"
+            detected_country = None
 
-            flow = "outflow" if any(w in text_l for w in ["outflow", "sent", "汇出", "支出"]) else "outflow"
+            # 1. Match from COUNTRY_MAP
+            for kw, code in COUNTRY_MAP.items():
+                if kw in text_l:
+                    try:
+                        c_obj = pycountry.countries.get(alpha_2=code)
+                        if c_obj:
+                            detected_country = c_obj.name
+                            break
+                    except Exception:
+                        pass
+
+            # 2. Match from pycountry words
+            if not detected_country:
+                text_clean = re.sub(r'[^\w\s]', ' ', text)
+                for w in text_clean.split():
+                    if len(w) >= 3 and w.lower() not in ["remittance", "data", "world", "bank", "official", "flow", "year", "rate", "outflow", "inflow"]:
+                        try:
+                            m = pycountry.countries.search_fuzzy(w)
+                            if m:
+                                detected_country = m[0].name
+                                break
+                        except Exception:
+                            pass
+
+            country = detected_country or "Bangladesh"
+            flow = "inflow" if any(w in text_l for w in ["inflow", "received", "汇入", "流入"]) else "outflow"
             res = dispatch_tool("get_worldbank_remittance", {"country": country, "flow": flow, "year": 2023})
 
             if "error" in res:

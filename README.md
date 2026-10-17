@@ -1,4 +1,4 @@
-# 🏦 CrossPay (微众智汇) — AI Financial Assistant for International Students
+# 🏦 CrossPay  — AI Financial Assistant for International Students
 
 [![WeBank International AI Finance Challenge](https://img.shields.io/badge/WeBank-International%20Track-0A2463?style=for-the-badge&logo=bank)]()
 [![Topic C: Cross-Border & Student Finance](https://img.shields.io/badge/Topic-C%3A%20Cross--border%20Finance-059669?style=for-the-badge)]()

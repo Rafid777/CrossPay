@@ -132,6 +132,7 @@ def check_safe_quota(
     amount_usd: float,
     purpose: str = "living_expense",
     university_verified: bool = False,
+    currency: str = "USD",
 ) -> dict:
     """
     Check if a transfer or conversion complies with China's State Administration
@@ -144,6 +145,14 @@ def check_safe_quota(
     if amount_usd <= 0:
         raise ValueError("Transfer amount must be greater than zero.")
     
+    curr = currency.strip().upper() if currency else "USD"
+    if curr != "USD":
+        from src.tools.fx import convert_amount
+        conv = convert_amount(amount_usd, curr, "USD")
+        effective_usd = conv["converted"]
+    else:
+        effective_usd = amount_usd
+
     now = datetime.now(timezone.utc)
     current_year = str(now.year)
     
@@ -159,12 +168,14 @@ def check_safe_quota(
     ytd_usd = round(ytd_cny / 7.28, 2)
     
     is_tuition = "tuition" in purpose.lower() or "学费" in purpose
-    if is_tuition and (university_verified or amount_usd > 1000):
+    if is_tuition and (university_verified or effective_usd > 1000):
         # Genuine Tuition Exemption Channel
         return {
             "student_id": student_id,
             "purpose": purpose,
-            "amount_usd": amount_usd,
+            "currency": curr,
+            "original_amount": amount_usd,
+            "amount_usd": round(effective_usd, 2),
             "quota_usd": SAFE_ANNUAL_QUOTA_USD,
             "ytd_used_usd": ytd_usd,
             "remaining_quota_usd": max(0.0, round(SAFE_ANNUAL_QUOTA_USD - ytd_usd, 2)),
@@ -177,14 +188,16 @@ def check_safe_quota(
             "timestamp": now.isoformat(),
         }
     
-    projected_total = round(ytd_usd + amount_usd, 2)
+    projected_total = round(ytd_usd + effective_usd, 2)
     quota_exceeded = projected_total > SAFE_ANNUAL_QUOTA_USD
     remaining = max(0.0, round(SAFE_ANNUAL_QUOTA_USD - projected_total, 2))
     
     return {
         "student_id": student_id,
         "purpose": purpose,
-        "amount_usd": amount_usd,
+        "currency": curr,
+        "original_amount": amount_usd,
+        "amount_usd": round(effective_usd, 2),
         "quota_usd": SAFE_ANNUAL_QUOTA_USD,
         "ytd_used_usd": ytd_usd,
         "projected_total_usd": projected_total,

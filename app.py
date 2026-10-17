@@ -10,6 +10,7 @@ from src.health_score import calculate_health_score
 from src.alerts import get_active_alerts
 from src.theme import load_css, render_hero, render_kpi_card, render_alert, render_compliance_footer
 from src.i18n import t
+from src.ui_components import ensure_session_state
 
 load_dotenv()
 
@@ -21,19 +22,7 @@ st.set_page_config(
 )
 
 load_css()
-
-# Initialize DB and Session
-if "db_seeded" not in st.session_state:
-    conn = get_db()
-    seed_mock_data(conn)
-    conn.close()
-    st.session_state.db_seeded = True
-
-if "student_id" not in st.session_state:
-    st.session_state.student_id = os.getenv("STUDENT_ID", "STU001")
-
-if "lang" not in st.session_state:
-    st.session_state.lang = "en"
+ensure_session_state()
 
 # Sidebar
 with st.sidebar:

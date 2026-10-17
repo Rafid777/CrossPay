@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from src.db import get_db
 from src.mock_data import seed_mock_data
 from src.agent import CrossPayAgent
-from src.ui_components import render_message, render_confirmation_banner
+from src.ui_components import render_message, render_confirmation_banner, ensure_session_state
 from src.theme import load_css, render_hero, render_compliance_footer
 from src.i18n import t, get_current_lang
 
@@ -20,25 +20,7 @@ st.set_page_config(
 )
 
 load_css()
-
-# Session State Setup
-if "db_seeded" not in st.session_state:
-    conn = get_db()
-    seed_mock_data(conn)
-    conn.close()
-    st.session_state.db_seeded = True
-
-if "student_id" not in st.session_state:
-    st.session_state.student_id = os.getenv("STUDENT_ID", "STU001")
-
-if "lang" not in st.session_state:
-    st.session_state.lang = "en"
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "agent" not in st.session_state:
-    st.session_state.agent = None
+ensure_session_state()
 
 # Sidebar controls
 with st.sidebar:

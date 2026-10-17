@@ -58,3 +58,32 @@ def render_confirmation_banner(preview_text: str) -> tuple[bool, bool]:
     confirmed = col1.button("✅ Confirm", type="primary", use_container_width=True)
     cancelled = col2.button("❌ Cancel", type="secondary", use_container_width=True)
     return confirmed, cancelled
+
+
+def ensure_session_state() -> None:
+    """Defensively bootstrap all session state variables across any page entry point."""
+    import os
+    from src.db import get_db
+    from src.mock_data import seed_mock_data
+
+    if "db_seeded" not in st.session_state:
+        conn = get_db()
+        seed_mock_data(conn)
+        conn.close()
+        st.session_state.db_seeded = True
+
+    if "student_id" not in st.session_state:
+        st.session_state.student_id = os.getenv("STUDENT_ID", "STU001")
+
+    if "lang" not in st.session_state:
+        st.session_state.lang = "en"
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    if "agent" not in st.session_state:
+        st.session_state.agent = None
+
+    if "engine_mode" not in st.session_state:
+        st.session_state.engine_mode = "autonomous"
+

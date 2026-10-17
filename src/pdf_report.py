@@ -20,6 +20,15 @@ RED = colors.HexColor('#E53935')
 GRAY = colors.HexColor('#546E7A')
 LIGHT_GRAY = colors.HexColor('#F8FAFF')
 
+_CHINESE_FONT = "Helvetica"
+try:
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+    pdfmetrics.registerFont(UnicodeCIDFont('STSong-Light'))
+    _CHINESE_FONT = 'STSong-Light'
+except Exception:
+    _CHINESE_FONT = "Helvetica"
+
 
 def _styles():
     styles = getSampleStyleSheet()
@@ -38,7 +47,7 @@ def _styles():
         "Highlight": ParagraphStyle("CPHighlight", fontSize=10, textColor=BLUE,
                                     fontName="Helvetica-Bold", leading=14),
         "Chinese": ParagraphStyle("CPChinese", fontSize=9, textColor=GRAY,
-                                  fontName="Helvetica", leading=12, spaceAfter=2),
+                                  fontName=_CHINESE_FONT, leading=12, spaceAfter=2),
     }
     return custom
 

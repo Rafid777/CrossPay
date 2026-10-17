@@ -4,7 +4,7 @@
 [![Topic C: Cross-Border & Student Finance](https://img.shields.io/badge/Topic-C%3A%20Cross--border%20Finance-059669?style=for-the-badge)]()
 [![Python 3.14](https://img.shields.io/badge/Python-3.14-3776AB?style=for-the-badge&logo=python)]()
 [![Gemini 3.8 Flash](https://img.shields.io/badge/Gemini-3.8%20Flash-EA4335?style=for-the-badge&logo=google)]()
-[![Tests Passing](https://img.shields.io/badge/Tests-135%2F135%20Passing-brightgreen?style=for-the-badge)]()
+[![Tests Passing](https://img.shields.io/badge/Tests-144%2F144%20Passing-brightgreen?style=for-the-badge)]()
 [![Bilingual EN/ZH](https://img.shields.io/badge/Language-English%20%7C%20%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-blue?style=for-the-badge)]()
 
 **CrossPay** is a competition-grade AI financial assistant designed for international students studying in China, built for the **WeBank International AI Finance Challenge (Topic C: Cross-Border & Student Finance)**.
@@ -65,7 +65,7 @@ Project China/
 │       ├── compliance.py       # AML threshold ($10,000 USD), SAFE quota exemption, CIPS windows, sanctions list, PII regex
 │       ├── analytics.py        # Historical FX, spending trends, Tukey IQR anomaly detection, cohort benchmarks
 │       └── fraud.py            # Tuition proxy scams, PBOC 'Card Break' screening, multi-factor risk index
-├── tests/                      # 135 automated pytest tests across 12 test suites (100% passing)
+├── tests/                      # 144 automated pytest tests across 13 test suites (100% passing)
 ├── docs/                       # Formal competition deliverables (01, 02, 05, 06)
 ├── assets/style.css            # Fintech design styling
 └── scripts/

@@ -69,3 +69,7 @@ def render_compliance_footer(lang: str = "en") -> None:
         """
     html = f'<div class="compliance-footer">{text}</div>'
     st.markdown(html, unsafe_allow_html=True)
+
+
+# Backwards compatibility and multi-page alias
+inject_css = load_css

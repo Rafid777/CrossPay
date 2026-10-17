@@ -3,7 +3,10 @@ CrossPay — Page 5: Global Remittance Intelligence
 Real World Bank data (2000–2024) powering competitive macro analysis.
 """
 import sys
-sys.stdout.reconfigure(encoding="utf-8")
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
 
 import streamlit as st
 import pandas as pd
@@ -11,6 +14,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import os
+
+from src.ui_components import ensure_session_state
+ensure_session_state()
 
 # ── Page config ─────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -28,10 +34,10 @@ except Exception:
 
 try:
     from src.i18n import t
-    lang = st.session_state.get("language", "EN")
+    lang = st.session_state.get("lang", st.session_state.get("language", "en")).lower()
 except Exception:
-    def t(k, lang="EN"): return k
-    lang = "EN"
+    def t(k, lang="en"): return k
+    lang = "en"
 
 # ── Data loading ─────────────────────────────────────────────────────────────
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")

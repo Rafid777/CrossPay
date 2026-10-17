@@ -60,7 +60,7 @@ def _refresh_live_rates() -> dict:
                 for curr, val in rates.items():
                     if val > 0:
                         # Frankfurter rates are 1 USD = X Currency -> Currency in USD = 1 / X
-                        updated_rates[curr] = 1.0 / val if curr not in ["EUR", "GBP"] else 1.0 / val
+                        updated_rates[curr] = 1.0 / val
                 _LIVE_CACHE["rates"] = updated_rates
                 _LIVE_CACHE["timestamp"] = now
                 _LIVE_CACHE["source"] = "Frankfurter Live Interbank Feed"
@@ -152,7 +152,7 @@ def get_pboc_central_parity_rate(currency: str = "USD") -> dict:
     rates = _refresh_live_rates()
     # Base is CNY
     cny_usd = rates.get("CNY", 1 / 7.28)
-    curr_usd = rates.get(curr, 1.0)
+    curr_usd = rates.get(curr) or _BASELINE_RATES_TO_USD.get(curr)
     if not curr_usd:
         raise ValueError(f"Unsupported currency for PBOC quote: {currency}")
 

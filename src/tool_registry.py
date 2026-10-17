@@ -238,6 +238,7 @@ TOOL_DECLARATIONS = [
                 "amount_usd": {"type": "number", "description": "Transfer amount in USD"},
                 "purpose": {"type": "string", "description": "Transfer purpose (e.g. 'tuition', 'living_expense')"},
                 "university_verified": {"type": "boolean", "description": "Whether admission letter and university invoice are attached"},
+                "currency": {"type": "string", "description": "Currency of transfer amount (default USD, e.g. CNY, BDT, USD)"},
             },
             "required": ["student_id", "amount_usd"],
         },

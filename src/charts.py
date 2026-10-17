@@ -56,6 +56,8 @@ def create_spending_donut(categories: dict, lang: str = "en") -> go.Figure:
 
 def create_monthly_trend(trend_data: list[dict], budget_limit: float = 3000.0, lang: str = "en") -> go.Figure:
     """Create a 6-month spending line chart with budget baseline."""
+    if not trend_data:
+        trend_data = [{"month": "2026-10", "total": 0.0}]
     months = [d["month"] for d in trend_data]
     totals = [d["total"] for d in trend_data]
 
@@ -100,6 +102,8 @@ def create_monthly_trend(trend_data: list[dict], budget_limit: float = 3000.0, l
 
 def create_credit_journey(credit_history: list[dict], lang: str = "en") -> go.Figure:
     """Create a credit score journey area graph."""
+    if not credit_history:
+        credit_history = [{"date": "2026-05", "score": 650}]
     dates = [d["date"] for d in credit_history]
     scores = [d["score"] for d in credit_history]
 
@@ -134,6 +138,8 @@ def create_credit_journey(credit_history: list[dict], lang: str = "en") -> go.Fi
 
 def create_fx_trend(fx_data: list[dict], currency: str = "BDT", lang: str = "en") -> go.Figure:
     """Create a 30-day foreign exchange rate chart."""
+    if not fx_data:
+        fx_data = [{"date": "2026-10-17", "rate": 0.065}]
     dates = [d["date"] for d in fx_data]
     rates = [d["rate"] for d in fx_data]
 

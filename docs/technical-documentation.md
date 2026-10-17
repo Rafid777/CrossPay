@@ -166,12 +166,14 @@ CrossPay embeds an interactive model evaluation and operations suite directly in
 
 ## 7. Testing & Quality Assurance
 
-- **Total Automated Tests**: **115**
+- **Total Automated Tests**: **144**
 - **Test Command**: `python -m pytest tests/ -v`
-- **Pass Rate**: **100% (115/115)**
-- **Test Coverage Across 11 Specialized Suites**:
+- **Pass Rate**: **100% (144/144)**
+- **Test Coverage Across 13 Specialized Suites**:
   - `test_agent.py` (10 tests): Multi-turn stateful memory, tool calling, 2-step confirmation handling, API fallback
   - `test_tools.py` (35 tests): Deterministic mathematics, FX conversions with zero-fee same-currency logic, expanded international student currencies, remittance ordering, single & multi-day AML structuring flags, negative amount exploit guards, PII masking, tuition commitment alerts, and PyCountry sanctions screening
+  - `test_fraud_detection.py` (20 tests): Tuition proxy discount scam detection, underground P2P chat swap screening under PBOC "Card Break Action", composite multi-factor fraud risk evaluation, and PRC telecom fraud keyword screening
+  - `test_audit_fixes.py` (9 tests): Currency-aware SAFE quota conversions (CNY/BDT to USD), defensive PBOC unsupported currency error handling, negative tuition commit guards, empty chart input resilience, CSS aliases, and CJK PDF font registration
   - `test_fx_accuracy.py` (4 tests): Live interbank rate fetching, PBOC official central parity rates (中间价), statutory +/-2% floating bands, commercial bank bid/ask spreads, and 30-day Bollinger band volatility models
   - `test_compliance_accuracy.py` (5 tests): China SAFE $50k USD annual facilitation quota tracking, university tuition genuine non-quota exemption (Circular [2020] No.17), student eligibility verification (X1/X2 visa), and PBOC CIPS clearing window monitoring
   - `test_data_accuracy.py` (3 tests): 5,000 empirical transaction processing, Tukey's IQR outlier and anomaly detection, and destination country peer spend benchmarks

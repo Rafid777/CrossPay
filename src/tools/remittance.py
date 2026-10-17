@@ -53,6 +53,8 @@ def schedule_tuition_payment(student_id: str, amount_cny: float, due_date: str) 
 
 def commit_schedule_tuition_payment(student_id: str, amount_cny: float, due_date: str) -> dict:
     """Actually commits and reserves the tuition payment schedule after user confirmation."""
+    if amount_cny <= 0:
+        raise ValueError("Tuition amount must be greater than zero.")
     from src.db import get_db
     conn = get_db()
     timestamp = datetime.now(timezone.utc).isoformat()

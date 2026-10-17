@@ -13,6 +13,7 @@ from src.charts import create_health_gauge, create_spending_donut
 from src.pdf_report import generate_pdf_report
 from src.theme import load_css, render_hero, render_kpi_card, render_alert, render_compliance_footer
 from src.i18n import t, get_current_lang
+from src.ui_components import ensure_session_state
 
 load_dotenv()
 
@@ -24,19 +25,7 @@ st.set_page_config(
 )
 
 load_css()
-
-# Initialize DB and Session
-if "db_seeded" not in st.session_state:
-    conn = get_db()
-    seed_mock_data(conn)
-    conn.close()
-    st.session_state.db_seeded = True
-
-if "student_id" not in st.session_state:
-    st.session_state.student_id = os.getenv("STUDENT_ID", "STU001")
-
-if "lang" not in st.session_state:
-    st.session_state.lang = "en"
+ensure_session_state()
 
 # Sidebar controls
 with st.sidebar:

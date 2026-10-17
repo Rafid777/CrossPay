@@ -953,16 +953,21 @@ class AutonomousFinEngine:
         # ── 20. check_safe_quota ───────────────────────────────────────────────
         if intent == "check_safe_quota":
             amt_usd = entities.get("amount", 5000.0)
+            currency = entities.get("from_currency") or entities.get("to_currency") or "USD"
             res = dispatch_tool("check_safe_quota", {
                 "student_id": self.student_id,
                 "amount_usd": amt_usd,
                 "purpose": "tuition" if "tuition" in text.lower() or "学费" in text else "living_expense",
+                "currency": currency,
             })
+            amount_display_zh = f"¥{res['original_amount']:,.2f} {res['currency']} (折合 ${res['amount_usd']:,.2f} USD)" if res.get("currency") != "USD" else f"${res['amount_usd']:,.2f} USD"
+            amount_display_en = f"{res['original_amount']:,.2f} {res['currency']} (${res['amount_usd']:,.2f} USD equiv.)" if res.get("currency") != "USD" else f"${res['amount_usd']:,.2f} USD"
+
             if lang == "zh":
                 resp = (
                     f"### 🛡️ 国家外汇管理局 (SAFE) 个人额度与合规审核结果\n\n"
                     f"- **学生编号**: `{res['student_id']}`\n"
-                    f"- **申报金额**: `${res['amount_usd']:,.2f} USD`\n"
+                    f"- **申报金额**: `{amount_display_zh}`\n"
                     f"- **年度法定便利化总额度**: `${res['quota_usd']:,.2f} USD`\n"
                     f"- **年内已用额度**: `${res['ytd_used_usd']:,.2f} USD`\n"
                     f"- **年内剩余可用额度**: **`${res['remaining_quota_usd']:,.2f} USD`**\n"
@@ -974,7 +979,7 @@ class AutonomousFinEngine:
                 resp = (
                     f"### 🛡️ China SAFE Foreign Exchange Quota Compliance Result\n\n"
                     f"- **Student ID**: `{res['student_id']}`\n"
-                    f"- **Transfer Amount**: `${res['amount_usd']:,.2f} USD`\n"
+                    f"- **Transfer Amount**: `{amount_display_en}`\n"
                     f"- **Annual Facilitation Limit**: `${res['quota_usd']:,.2f} USD`\n"
                     f"- **YTD Consumed**: `${res['ytd_used_usd']:,.2f} USD`\n"
                     f"- **Remaining Quota**: **`${res['remaining_quota_usd']:,.2f} USD`**\n"

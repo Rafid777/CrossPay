@@ -4,7 +4,10 @@ Provides interactive live inference inspection, 20-intent benchmark metrics,
 confidence gauges, latency profiling, and training dataset exploration.
 """
 import sys
-sys.stdout.reconfigure(encoding="utf-8")
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
 
 import os
 import json
@@ -18,6 +21,7 @@ import plotly.graph_objects as go
 from src.theme import inject_css
 from src.autonomous_engine import AutonomousFinEngine, get_ml_pipeline
 from src.db import get_db
+from src.ui_components import ensure_session_state
 
 st.set_page_config(
     page_title="CrossPay · AI Model Studio",
@@ -27,13 +31,7 @@ st.set_page_config(
 )
 
 inject_css()
-
-# Session state
-if "lang" not in st.session_state:
-    st.session_state.lang = "en"
-
-if "student_id" not in st.session_state:
-    st.session_state.student_id = "STU001"
+ensure_session_state()
 
 lang = st.session_state.lang
 student_id = st.session_state.student_id

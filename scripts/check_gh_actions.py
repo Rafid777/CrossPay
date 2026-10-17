@@ -27,5 +27,8 @@ for r in data.get("workflow_runs", [])[:4]:
             jdata = json.loads(jresp.read().decode("utf-8"))
             for j in jdata.get("jobs", []):
                 print(f"  - Job: {j['name']} | Status: {j['status']} | Conclusion: {j['conclusion']}")
+                if j['conclusion'] == 'failure':
+                    for s in j.get('steps', []):
+                        print(f"      Step: {s['name']} -> {s.get('conclusion')}")
     except Exception as je:
         print(f"  (Could not fetch jobs: {je})")

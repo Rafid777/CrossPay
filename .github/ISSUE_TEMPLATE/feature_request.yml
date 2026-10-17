@@ -1,0 +1,39 @@
+name: 💡 Feature Request
+description: Propose a new feature, currency corridor, or regulatory check for CrossPay
+title: "[FEAT]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We welcome proposals to improve CrossPay for international students!
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Regulatory Gap
+      description: Is your feature request related to a specific financial pain point or student need?
+      placeholder: "Students from Indonesia (IDR) need central parity rate support..."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution and how it should work.
+    validations:
+      required: true
+  - type: dropdown
+    id: module
+    attributes:
+      label: Target Module
+      options:
+        - "Foreign Exchange (fx.py)"
+        - "Remittance & Tuition (remittance.py)"
+        - "Budget & Expenses (budget.py)"
+        - "Credit Building (credit.py)"
+        - "Regulatory Compliance (compliance.py)"
+        - "Analytics & Forecasting (analytics.py)"
+        - "Anti-Fraud & Cybercrime (fraud.py)"
+        - "UI & Streamlit Experience"
+    validations:
+      required: true
